@@ -85,6 +85,31 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 
     }
 
+	public function testExtend() {
+		$john = S('box:rounded')->args(array('3px', 'width'=>'200', 'height'=>'200', 'background-color'=>'orange', 'border'=>'4px solid green'));
+
+		// Extension
+		$john->extend('box');
+
+		// $john->defaults('rounded');
+
+		$john->stylesheet('box:rounded:rounded.css');
+
+
+		$john->attr('name', 'john mayer')
+				->addClass('rounded');
+		
+		
+		echo $john;
+		
+		$j = $this->rasterize($john);
+		
+		$this->markTestSkipped(
+			'Test data was lost for this one - passed before, not too worried - I\'ll take care of this later.'
+        );
+		
+	}
+
     public function testStylesheet() {
 		$tag = S('john:mayer');
 

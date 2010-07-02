@@ -12,8 +12,7 @@ class Tag
 {
 	private
 		$attributes = array(),
-		$styles = array(),
-		$css_classes = array()
+		$styles = array()
 	;
 	
 	private static 
@@ -26,6 +25,7 @@ class Tag
 	private 
 		$left_wrap = 'div',
 		$right_wrap = 'div',
+		$wrap_set = false, 
 		$after = false,
 		$before = false
 	;
@@ -37,6 +37,8 @@ class Tag
 	;
 	
 	private $initialized = false;
+	
+	private $extends;
 
 	////////////////////////////////////////////////////////
 	////////               Public API               ////////
@@ -49,6 +51,10 @@ class Tag
 		$this->args($init['args']);
 		
 		return $this;
+	}
+
+	public function extend($namespace, $library = null) {
+		$this->extends = S($namespace, $library);
 	}
 
 	public function stylesheet() {
@@ -223,28 +229,33 @@ class Tag
 	
 	public function addClass() {
 		$classes = func_get_args();
+		$classes = implode(' ', $classes);
+		$classes = explode(' ', $classes);
+		$more = explode(' ', $this->attr('class'));
+		$classes = array_merge($more, $classes);
+		$classes = array_unique($classes);
 		
-		foreach ($classes as $class) {
-			$this->css_classes[] = $class;
-		}
-
-		$css = implode(' ', $this->css_classes);
-		$this->attr('class', $css);
+		$classes = implode(' ', $classes);
+		$classes = trim($classes);
+		
+		$this->attr('class', $classes);
 
 		return $this;	
 	}
 	
 	public function removeClass() {
 		$classes = func_get_args();
+		$classes_present = explode(' ', $this->attr('class'));
 		
 		foreach ($classes as $class) {
-			$index = array_search($class, $this->css_classes);
+			$index = array_search($class, $classes_present);
 			if($index !== false) {
-				unset($this->css_classes[$index]);
+				unset($classes_present[$index]);
 			}
 		}
 
-		$css = implode(' ', $this->css_classes);
+		$css = implode(' ', $classes_present);
+		$css = trim($css);
 		
 		$this->attr('class', $css);
 
@@ -282,12 +293,7 @@ class Tag
 	}
 
 	public function wrap($left = 'div', $right = null) {
-		// Handles wrap(false);
-		// if(!isset($right) && $left === false) {
-		// 	$right = false;
-		// } else {
-		// 	$right = true;
-		// }
+		$this->wrap_set = true;
 		
 		// Handles wrap('form');
 		if(!isset($right)) {
@@ -401,7 +407,7 @@ class Tag
 		
 		return $this;
 	}
-	
+
 	// Deal with later.
 	public function useDefaults($namespace = null) {
 		if(!isset($namespace)) {
@@ -514,7 +520,11 @@ class Tag
 	
 	private function _render() {
 		try {  
-		
+			
+			if(isset($this->extends)) {
+				$this->_extender();
+			}
+
 			// If not already initialized.
 			if(!$this->_initialized()) {
 			    
@@ -532,8 +542,8 @@ class Tag
 				throw new Exception("tostring() method required!", 1);
 			}
 
+			
 			$out = $this->tostring();
-		
 
 			// Wrap it right up
 			$out = $this->_wrapper($out);
@@ -575,11 +585,7 @@ class Tag
 		if($this->left_wrap !== false) {
 			// Add Classes
 			$b_tag = '<'.$this->left_wrap; 
-			
-			if(!empty($this->css_classes)) {
-				$b_tag .= ' class="'.implode(" ", $this->css_classes).'" ';
-			}
-			
+
 			// Add styles
 			if(!empty($this->styles)) {
 				$b_tag .= ' style="';
@@ -618,7 +624,7 @@ class Tag
 		return $out;
 	}
 	
-	public function _map($assert) {
+	private function _map($assert) {
 		
 		$assert = trim($assert,' /');
 
@@ -648,12 +654,42 @@ class Tag
 		}
 		
 		if(!file_exists($path)) {
-			throw new Exception('Unable to map: '.$path.' to right location.', 1);
+			throw new Exception('Unable to map: '.$path.' to right location. ('.$namespace.')', 1);
 		}
 		
 		return $path;
 	}
 	
+	private function _extender() {
+		$e = $this->extends;
+		if($e->_initialized()) {
+			return $this;
+		}
+
+		// For now just take out all the defaults
+		$args = array();
+		foreach ($this->arg() as $key => $value) {
+			if(!is_numeric($key)) {
+				$args[$key] = $value;
+			}
+		}
+
+		$e->arg($args);
+		$e->_render();
+		$e->_initialized(true);
+
+		// Will all be overwritten as needed
+		$this->addClass($e->attr('class'));
+		$this->style($e->style());
+		$this->attr($e->attr());
+		
+		// If you didn't set wrap, let extended decide how to wrap it.
+		// if(!$this->wrap_set) {
+		// 	$this->wrap($e->_leftwrap(), $e->_rightwrap());
+		// }
+		
+		return $this;
+	}
 }
 
 

@@ -113,7 +113,7 @@ class Template
 		$string = '(?:[\'"]'.$oneChar.'*[\'"])';
 		$varName = '\\$(?:'.$oneChar.'[^ \\],}\n\t]*)';
 		$func = '(?:{[ \t\n]*'.$oneChar.'[^ \n\t}]*)';
-		$assoc = '(?:[\"\']?\w+[\"\']?[ ]*=)';
+		$assoc = '(?:[\"\']?\w+[\"\']?[ ]*:)';
 		
 		$scarletToken = '@(?:false|true|null'
 		  .'|[\\}\\]\\[]'
