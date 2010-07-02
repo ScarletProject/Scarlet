@@ -1,9 +1,9 @@
 <?php
 require_once 'PHPUnit/Framework.php';
 
-require_once dirname(__FILE__).'/../LibraryCreator.php';
+require_once dirname(__FILE__).'/../tools/LibraryCreator.php';
 require_once dirname(__FILE__).'/../../Scarlet.php';
-require_once dirname(__FILE__).'/../phpQuery.php';
+require_once dirname(__FILE__).'/../tools/phpQuery.php';
 
 /**
  * Test class for Tag.
@@ -64,7 +64,7 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 			}
 
 			$creator->init();
-			loader()->library(realpath(dirname(__FILE__).'/'.$library));
+			S()->library(realpath(dirname(__FILE__).'/'.$library));
 		}
 		
 		$this->object = S('viva:la:vida');
@@ -86,58 +86,73 @@ class TagTestCase extends PHPUnit_Framework_TestCase
     }
 
     public function testStylesheet() {
-		$package = S('john:mayer');
-		
-        $arr = $package->stylesheet();
+		$tag = S('john:mayer');
+
+		$arr = $tag->stylesheet();
 		$this->assertTrue( is_array($arr), 'no params returns stylesheets array' );
 		$this->assertTrue( empty($arr), 'stylesheet starts out empty');
-		
-		$tag = $package->stylesheet('style0.css');
-        $arr = $package->stylesheet();
 
-		$this->assertContains($package->location().'/style0.css', $arr, 'stylesheets contain style0.css' );
-        $this->assertSame( $package, $tag, 'returned value is a tag' );
+		$return = $tag->stylesheet('style0.css');
+		$arr = $tag->stylesheet();
 
-        $tag = $package->stylesheet('style1.css', 'style2.css');
-		$arr = $package->stylesheet();
+		$this->assertContains($tag->location().'/style0.css', $arr, 'stylesheets contain style0.css' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 
-        $this->assertSame( $package, $tag, 'returned value is a tag' );
-		$this->assertContains($package->location().'/style0.css', $arr, 'stylesheets contain style0.css' );
-		$this->assertContains($package->location().'/style1.css', $arr, 'stylesheets contain style2.css' );
-		$this->assertContains($package->location().'/style2.css', $arr, 'stylesheets contain style3.css' );
-		
+		$return = $tag->stylesheet('style1.css', 'style2.css');
+		$arr = $tag->stylesheet();
+
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
+		$this->assertContains($tag->location().'/style0.css', $arr, 'stylesheets contain style0.css' );
+		$this->assertContains($tag->location().'/style1.css', $arr, 'stylesheets contain style2.css' );
+		$this->assertContains($tag->location().'/style2.css', $arr, 'stylesheets contain style3.css' );
+
 		// Took care of local stylesheets, now need to check stylesheets from other libraries		
-		$tag = $package->stylesheet('halo:style4.css');
-		$location = dirname(loader()->find('halo'));
-		$arr = $package->stylesheet();
+		$return = $tag->stylesheet('halo:style4.css');
+		$location = dirname(S()->find('halo'));
+		$arr = $tag->stylesheet();
 		$this->assertContains($location.'/style4.css', $arr, 'stylesheets contain style4.css' );
-		$this->assertSame( $package, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 
-		$tag = $package->stylesheet('viva:la:vida:style5.css');
-		$location = dirname(loader()->find('viva:la:vida'));
-		$arr = $package->stylesheet();
+		$return = $tag->stylesheet('viva:la:vida:style5.css');
+		$location = dirname(S()->find('viva:la:vida'));
+		$arr = $tag->stylesheet();
 		$this->assertContains($location.'/style5.css', $arr, 'stylesheets contain style5.css' );
-		$this->assertSame( $package, $tag, 'returned value is a tag' );
-		
-		$tag = $package->stylesheet('tribal:runner:stylesheets/style12.css');
-		$location = dirname(loader()->find('tribal:runner'));
-		$arr = $package->stylesheet();
-		$this->assertSame( $package, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
+
+		$return = $tag->stylesheet('tribal:runner:stylesheets/style12.css');
+		$location = dirname(S()->find('tribal:runner'));
+		$arr = $tag->stylesheet();
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($location.'/stylesheets/style12.css', $arr, 'stylesheets contain style12.css' );
-		
+
 		// Now need to check for absolute paths
-		$tag = $package->stylesheet('/ScarletFinal/test-library-1/tribal/runner/stylesheets/style13.css');
-		$location = dirname(loader()->find('tribal:runner'));
-		$arr = $package->stylesheet();
-		$this->assertSame( $package, $tag, 'returned value is a tag' );
+		$return = $tag->stylesheet('/ScarletFinal/test-library-1/tribal/runner/stylesheets/style13.css');
+		$location = dirname(S()->find('tribal:runner'));
+		$arr = $tag->stylesheet();
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($location.'/stylesheets/style13.css', $arr, 'stylesheets contain style13.css' );
-		
-		$tag = $package->stylesheet('/Users/Matt/Sites/ScarletFinal/tests/test-library-0/viva/la/vida/stylesheets/style14.css');
-		$location = dirname(loader()->find('viva:la:vida'));
-		$arr = $package->stylesheet();
-		$this->assertSame( $package, $tag, 'returned value is a tag' );
+
+		$return = $tag->stylesheet('/Users/Matt/Sites/ScarletFinal/tests/test-library-0/viva/la/vida/stylesheets/style14.css');
+		$location = dirname(S()->find('viva:la:vida'));
+		$arr = $tag->stylesheet();
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($location.'/stylesheets/style14.css', $arr, 'stylesheets contain style14.css' );
 
+		// Allow for shortcuts that link to css file.
+		$return = $tag->stylesheet('grid');
+		$arr = $tag->stylesheet();
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
+		// Defer responsibility till css can take care of it
+		$this->assertContains('grid', $arr, 'scripts contain grid' );
+
+
+	// Not necessary right now....
+		// // Remove all of them
+		// $tag->removeStylesheet($tag->)
+		// 
+		// // Take an array of stylesheets
+		// $return = $tag->stylesheet(array('grid', '/Users/Matt/Sites/ScarletFinal/tests/test-library-0/viva/la/vida/stylesheets/style14.css', 'viva:la:vida:style5.css', 'tribal:runner:stylesheets/style12.css'));
+		
     }
 
     public function testRemoveStylesheet() {
@@ -150,12 +165,12 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		$return = $tag->removeStylesheet();
 		$arr = $tag->stylesheet();
 		
-		$location = dirname(loader()->find('viva:la:vida'));
+		$location = dirname(S()->find('viva:la:vida'));
 		
 		$this->assertContains( $location.'/style1.css', $arr, 'ignore out of bounds removal' );
 		$this->assertContains( $location.'/stylesheets/style12.css', $arr, 'ignore out of bounds removal' );
 		
-		$location_mayer = dirname(loader()->find('john:mayer'));
+		$location_mayer = dirname(S()->find('john:mayer'));
 		$this->assertContains( $location_mayer.'/style3.css', $arr, 'ignore out of bounds removal' );
 		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		
@@ -207,7 +222,17 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		$return = $tag->removeStylesheet(1,1);
 		$arr = $tag->stylesheet();
 		$this->assertEquals( 1, count($arr), 'stylesheet array empty (OOB2)' );
-		$this->assertSame( $tag, $return, 'returned value is a tag' );		
+		$this->assertSame( $tag, $return, 'returned value is a tag' );	
+		// Empty
+		$tag->removeStylesheet(0);
+		
+		// Remove shortcutted stylesheet
+		$tag->stylesheet('grid');
+		$return = $tag->removeStylesheet('grid');
+		$arr = $tag->stylesheet();
+		$this->assertEquals( 0, count($arr), 'stylesheet array empty (grid)' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
+			
     }
 
     public function testScript() {
@@ -217,51 +242,59 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		$this->assertTrue( is_array($arr), 'no params returns scripts array' );
 		$this->assertTrue( empty($arr), 'script starts out empty');
 
-		$tag = $tag->script('script0.js');
+		$return = $tag->script('script0.js');
 		$arr = $tag->script();
 
 		$this->assertContains($tag->location().'/script0.js', $arr, 'scripts contain script0.js' );
-		$this->assertSame( $tag, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 
-		$tag = $tag->script('script1.js', '/script2.js');
+		$return = $tag->script('script1.js', '/script2.js');
 		$arr = $tag->script();
 
-		$this->assertSame( $tag, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($tag->location().'/script0.js', $arr, 'scripts contain script0.js' );
 		$this->assertContains($tag->location().'/script1.js', $arr, 'scripts contain script2.js' );
 		$this->assertContains($tag->location().'/script2.js', $arr, 'scripts contain script3.js' );
 
 		// Took care of local scripts, now need to check scripts from other libraries		
-		$tag = $tag->script('halo://script4.js');
-		$location = dirname(loader()->find('halo'));
+		$return = $tag->script('halo://script4.js');
+		$location = S()->location('halo');
 		$arr = $tag->script();
 		$this->assertContains($location.'/script4.js', $arr, 'scripts contain script4.js' );
-		$this->assertSame( $tag, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 
-		$tag = $tag->script('viva:la:vida:script5.js');
-		$location = dirname(loader()->find('viva:la:vida'));
+		$return = $tag->script('viva:la:vida:script5.js');
+		$location = S()->location('viva:la:vida');
 		$arr = $tag->script();
 		$this->assertContains($location.'/script5.js', $arr, 'scripts contain script5.js' );
-		$this->assertSame( $tag, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 
-		$tag = $tag->script('tribal:runner:/scripts/script12.js');
-		$location = dirname(loader()->find('tribal:runner'));
+		$return = $tag->script('tribal:runner:/scripts/script12.js');
+		$location = S()->location('tribal:runner');
 		$arr = $tag->script();
-		$this->assertSame( $tag, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($location.'/scripts/script12.js', $arr, 'scripts contain script12.js' );
 
 		// Now need to check for absolute paths
-		$tag = $tag->script('ScarletFinal/test-library-1/tribal/runner/scripts/script13.js');
-		$location = dirname(loader()->find('tribal:runner'));
+		$return = $tag->script('ScarletFinal/test-library-1/tribal/runner/scripts/script13.js');
+		$location = S()->location('tribal:runner');
 		$arr = $tag->script();
-		$this->assertSame( $tag, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($location.'/scripts/script13.js', $arr, 'scripts contain script13.js' );
 
-		$tag = $tag->script('Users/Matt/Sites/ScarletFinal/tests/test-library-0/viva/la/vida/scripts/script14.js');
-		$location = dirname(loader()->find('viva:la:vida'));
+		$return = $tag->script('Users/Matt/Sites/ScarletFinal/tests/test-library-0/viva/la/vida/scripts/script14.js');
+		$location = S()->location('viva:la:vida');
 		$arr = $tag->script();
-		$this->assertSame( $tag, $tag, 'returned value is a tag' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($location.'/scripts/script14.js', $arr, 'scripts contain script14.js' );
+
+		// Allow for shortcuts that link to javascript file.
+		$return = $tag->script('jquery');
+		$arr = $tag->script();
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
+		// Defer responsibility till javascript can take care of it
+		$this->assertContains('jquery', $arr, 'scripts contain jquery' );
+		
     }
 
     public function testRemoveScript() {
@@ -273,12 +306,12 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		$return = $tag->removeScript();
 		$arr = $tag->script();
 
-		$location = dirname(loader()->find('when:love:comes'));
+		$location = dirname(S()->find('when:love:comes'));
 
 		$this->assertContains( $location.'/script1.js', $arr, 'ignore out of bounds removal' );
 		$this->assertContains( $location.'/scripts/script12.js', $arr, 'ignore out of bounds removal' );
 
-		$location2 = dirname(loader()->find('when:love:comes:to:town'));
+		$location2 = dirname(S()->find('when:love:comes:to:town'));
 		$this->assertContains( $location2.'/script3.js', $arr, 'ignore out of bounds removal' );
 		$this->assertSame( $tag, $return, 'returned value is a tag' );
 
@@ -331,6 +364,16 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		$arr = $tag->script();
 		$this->assertEquals( 1, count($arr), 'script array empty (OOB2)' );
 		$this->assertSame( $tag, $return, 'returned value is a tag' );
+		// Empty
+		$tag->removeScript(0);
+		
+		// Remove shortcutted javascript
+		$tag->script('jquery');
+		$return = $tag->removeScript('jquery');
+		$arr = $tag->script();
+		$this->assertEquals( 0, count($arr), 'script array empty (jquery)' );
+		$this->assertSame( $tag, $return, 'returned value is a tag' );
+		
     }
 
     public function testAttach() {

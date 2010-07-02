@@ -2,7 +2,8 @@
 require_once 'PHPUnit/Framework.php';
 
 require_once dirname(__FILE__).'/../Scarlet.php';
-require_once dirname(__FILE__).'/phpQuery.php';
+require_once dirname(__FILE__).'/tools/LibraryCreator.php';
+require_once dirname(__FILE__).'/tools/phpQuery.php';
 
 /**
  * Test class for Scarlet.
@@ -146,17 +147,16 @@ class ScarletTestCase extends PHPUnit_Framework_TestCase
     }
 
     public function testLocation()
-    {
-	
+    {	
+
     	foreach ($this->data() as $namespace => $library) {
 			$file = S($namespace, $library)->find();
-
 			$dir = S($namespace, $library)->location();
 			$this->assertEquals( dirname($file), $dir, 'found the correct location: '.$dir );
     	}
 
 		S()->removeLibrary(S()->library());
-		
+
 		// Without supplied namespace
     	foreach ($this->data() as $namespace => $library) {
 			S()->library($library);
@@ -185,9 +185,7 @@ class ScarletTestCase extends PHPUnit_Framework_TestCase
         $tag = S('slideshow');
 		$this->assertTrue( ($tag instanceof Tag), 'slideshow is a Tag' );
 
-		// Should be true at some point
-		// $tag->__tostring();
-		// $this->assertTrue( ($tag instanceof Slideshow), '$tag is a slideshow' );
+		$this->assertTrue( ($tag instanceof Slideshow), '$tag is a slideshow' );
 		
 		$new_tag = S($tag);
 		$this->assertTrue( ($new_tag instanceof Tag), '$new_tag is a Tag' );

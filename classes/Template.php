@@ -39,15 +39,7 @@ class Template
 		
 		define('SCARLET_PROJECT_DIR', dirname(realpath($template)));
 		define('SCARLET_ATTACHMENT_DIR', SCARLET_PROJECT_DIR.'/.scarlet');
-				// 
-				// $this->path('project', dirname(realpath($template)));
-				// $this->path('attachment', $this->path('project').'/scarlet');
-				// $this->path('scarlet', dirname(realpath('..')));
-				// $this->path('default_library', $this->path('scarlet').'/library');
-
 		
-		// Load default library
-		// loader()->library('default', SCARLET_LIBRARY_DIR);
 	}
 	
 	public function compile() {
@@ -58,15 +50,6 @@ class Template
 		
 		$content = $this->parse($this->template);
 
-
-		// 
-		// $attachments = Tag::_attachments();
-		// 
-		// // Add the attachments to attachment directory
-		// foreach ($attachments as $name => $attachment) {
-		// 	file_put_contents($attachment['path'], $attachment['content']);
-		// }
-		
 		eval('?>' . $content );
 	}
 	
@@ -108,10 +91,7 @@ class Template
 			if(!method_exists($Tag, 'init')) {
 				throw new Exception('init method required for: '.$function, 1);
 			}
-			
-			// Initialize it.
-			// $Tag->init();
-			
+
 			$final = $Tag->__tostring();
 	
 			/*
@@ -212,11 +192,6 @@ class Template
 						$output->_initialized(true);
 					}
 					
-					// if(!method_exists($output, 'init')) {
-					// 	throw new Exception('init method required for: '.$function, 1);
-					// }
-					// $output->init();
-					
 					return array('out'=>$output,'offset'=>$i);
 				}
 			}
@@ -263,7 +238,6 @@ class Template
 	}
 	
 	private function push($old, $new, $subject) {
-		// echo $old;echo " | ";echo htmlspecialchars($new);echo "<br/>";
 		$pos = strpos($subject,$old);
 		
 		if ($pos !== false)
@@ -331,36 +305,6 @@ class Template
 		
 		return $content;
 	}
-	
-	// public function path($mixed = null, $value = null) {
-	// 	if(!isset($mixed)) {
-	// 		return $this->paths;
-	// 	} elseif(is_array($mixed)) {
-	// 		foreach ($mixed as $key => $value) {
-	// 			$this->paths[$key] = $value;
-	// 		}
-	// 		return $this;
-	// 	} elseif(isset($value)) {
-	// 		$this->paths[$mixed] = $value;
-	// 		return $this;
-	// 	} elseif(isset($this->paths[$mixed])) {
-	// 		return $this->paths[$mixed];
-	// 	} else {
-	// 		return '';
-	// 	}
-	// }
-	// 
-	// public function removePath() {
-	// 	$paths = func_get_args();
-	// 
-	// 	foreach ($paths as $path) {
-	// 		if(isset($this->paths[$path])) {
-	// 			unset($this->paths[$path]);
-	// 		}
-	// 	}
-	// 
-	// 	return $this;
-	// }
 	
 }
 

@@ -7,7 +7,6 @@
 * @package Tag
 * @author Matt Mueller
 */
-// include_once dirname(__FILE__).'/../interfaces/TagInterface.php';
 
 class Tag
 {
@@ -44,21 +43,9 @@ class Tag
 	////////////////////////////////////////////////////////
 	
 	public function __construct(array $init) {
-		// $constants = get_defined_constants(true);
-		// 
-		// foreach ($constants['user'] as $key => $value) {
-		// 	if(strstr($key, 'SCARLET_') !== false) {
-		// 		$this->path($key, $value);
-		// 	}
-		// }
-			
+
 		$this->namespace = $init['namespace'];	
-		
 		$this->file = $this->find($this->namespace);
-		// $this->path('here', dirname($this->location));	
-		
-		// if(isset($init['args'])) {
-		// }
 		$this->args($init['args']);
 		
 		return $this;
@@ -72,7 +59,12 @@ class Tag
 		}
 
 		foreach ($stylesheets as $sheet) {
-			self::$stylesheets[] = $this->_map($sheet);
+			// Defer responsibility - ie. grid
+			if(strstr($sheet, '.') === false) {
+				self::$stylesheets[] = $sheet;
+			} else {
+				self::$stylesheets[] = $this->_map($sheet);
+			}
 		}
 
 		return $this;
@@ -94,7 +86,10 @@ class Tag
 					unset(self::$stylesheets[key($sheet_arr)]);
 				}
 			} else {
-				$sheet = $this->_map($sheet);
+				// Removes tags like grid
+				if(strstr($sheet, '.') !== false) {
+					$sheet = $this->_map($sheet);
+				}
 				$index = array_search($sheet, self::$stylesheets);
 				if($index !== false) {
 					unset(self::$stylesheets[$index]);
@@ -112,7 +107,12 @@ class Tag
 		}
 
 		foreach ($scripts as $script) {
-			self::$scripts[] = $this->_map($script);
+			// Defer responsibility - ie. jquery
+			if(strstr($script, '.') === false) {
+				self::$scripts[] = $script;
+			} else {
+				self::$scripts[] = $this->_map($script);
+			}
 		}
 
 		return $this;
@@ -134,7 +134,10 @@ class Tag
 					unset(self::$scripts[key($sheet_arr)]);
 				}
 			} else {
-				$sheet = $this->_map($sheet);
+				// Removes tags like jquery
+				if(strstr($sheet, '.') !== false) {
+					$sheet = $this->_map($sheet);
+				}
 				$index = array_search($sheet, self::$scripts);
 				if($index !== false) {
 					unset(self::$scripts[$index]);
@@ -465,87 +468,11 @@ class Tag
 		
 		return $this;
 	}
-
-	public function path($mixed = null, $value = null) {
-		if(!isset($mixed)) {
-			return self::$paths;
-		} elseif(is_array($mixed)) {
-			foreach ($mixed as $key => $value) {
-				self::$paths[$key] = $value;
-			}
-			return $this;
-		} elseif(isset($value)) {
-			self::$paths[$mixed] = $value;
-			return $this;
-		} elseif(isset(self::$paths[$mixed])) {
-			return self::$paths[$mixed];
-		} else {
-			return '';
-		}
-	}
-	
-	public function removePath() {
-		$paths = func_get_args();
-
-		foreach ($paths as $path) {
-			if(isset($this->paths[$path])) {
-				unset($this->paths[$path]);
-			}
-		}
-
-		return $this;
-	}
-
-	// public function create($namespace, array $args = array()) {
-	// 	if($namespace[0] == '/') {
-	// 		$namespace = explode(':', substr($namespace,1));
-	// 		$namespace[count($namespace)-1] = 'End'.$namespace[count($namespace)-1];
-	// 		$namespace = implode(':',$namespace);
-	// 	}
-	// 	
-	// 	// Load the class
-	// 	loader()->add($namespace)->register();
-	// 	
-	// 	$class = str_replace(':','_',$namespace);
-	// 	
-	// 	// Params to be sent to Tag
-	// 	$tagParams = array();
-	// 	$tagParams['location'] = loader()->find($namespace);
-	// 	$tagParams['namespace'] = $namespace;
-	// 	$tagParams['args'] = $args;
-	// 	$tagParams['paths'] = $this->path();
-	// 	
-	// 	// Creating the tag
-	// 	return new $class($tagParams);
-	// }
 	
 	public function __tostring() {
-
-		// if($this->_has_runtime_args()) {
-		// 	$args = $this->_format_runtime_args($this->args);
-		// 	$out = 'new Tag("'.$this->namespace.'", '.$args.')';
-		// }
-		
-		// Since there are no unknowns, we can safely evaluate and
-		// return HTML
-		// else {		
-
-			// // Initialize the object
-			// if(!$this->_initialized()) {
-			// 	if(!method_exists($this, 'init')) {
-			// 		throw new Exception("init() method required!", 1);
-			// 	}
-			// 	
-			// 	$this->init();
-			// 	$this->_initialized(true);
-			// }
-			
 		$out = $this->_render();
-			
-		// }
 		
 		return $out;
-		
 	}
 	
 	////////////////////////////////////////////////////////
@@ -573,12 +500,16 @@ class Tag
 	
 	public function library() {
 		$libraries = func_get_args();
-		throw new Exception("Unsafe Operation: Use S()->library(".implode(', ', $libraries).") instead", 1);
+		S()->library($libraries);
+		// throw new Exception("Unsafe Operation: Use S()->library(".implode(', ', $libraries).") instead", 1);
+		return $this;
 	}
 	
 	public function removeLibrary() {
 		$libraries = func_get_args();
-		throw new Exception("Unsafe Operation: Use S()->removeLibrary(".implode(', ', $libraries).") instead", 1);
+		S()->removeLibrary($libraries);
+		// throw new Exception("Unsafe Operation: Use S()->removeLibrary(".implode(', ', $libraries).") instead", 1);
+		return $this;
 	}
 	
 	private function _render() {
@@ -623,19 +554,7 @@ class Tag
 			return $this->initialized;
 		}
 	}
-	
-	// public static function _stylesheets() {
-	// 	return self::$stylesheets;
-	// }
-	// 
-	// public static function _scripts() {
-	// 	return self::$scripts;
-	// }
-	
-	// public static function _attachments() {
-	// 	return self::$attachments;
-	// }
-	// 
+
 	public static function _clear_stylesheets() {
 		self::$stylesheets = array();
 	}
@@ -647,6 +566,7 @@ class Tag
 	public static function _clear_attachments() {
 		self::$attachments = array();
 	}
+
 	////////////////////////////////////////////////////////
 	////////            Private Functions           ////////
 	////////////////////////////////////////////////////////
@@ -719,7 +639,7 @@ class Tag
 			$file = array_pop($namespace);
 			$file = trim($file, ' /');
 			$namespace = implode(':', $namespace);
-			$location = dirname(loader()->find($namespace));
+			$location = dirname(S()->find($namespace));
 			$path = $location.'/'.$file;
 		} else {
 			$loc = realpath($this->location());
@@ -728,7 +648,7 @@ class Tag
 		}
 		
 		if(!file_exists($path)) {
-			throw new Exception('Unable to add: '.$path, 1);
+			throw new Exception('Unable to map: '.$path.' to right location.', 1);
 		}
 		
 		return $path;

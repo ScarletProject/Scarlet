@@ -1,8 +1,4 @@
 <?php
-// // Require the class loader
-// if(!class_exists('ClassLoader')) {
-// 	require_once dirname(__FILE__).'/classes/ClassLoader.php';
-// } 
 
 // Require Tag
 if(!class_exists('Tag')) {
@@ -11,46 +7,6 @@ if(!class_exists('Tag')) {
 
 define('SCARLET_DIR', realpath(dirname(__FILE__)));
 define('SCARLET_LIBRARY_DIR', SCARLET_DIR.'/library');
-
-// Universal loader
-// function loader() {
-// 	if(!isset($GLOBALS['loader'])) {
-// 		// Create an Autoload Object
-// 		$GLOBALS['loader'] = new ClassLoader;
-// 		return $GLOBALS['loader'];
-// 	} else {
-// 		return $GLOBALS['loader'];
-// 	}
-// }
-
-// Load the default library
-// loader()->library(SCARLET_LIBRARY_DIR);
-// 
-// function S($namespace, $library = null) {
-// 	if($namespace[0] == '/') {
-// 		$namespace = explode(':', substr($namespace,1));
-// 		$namespace[count($namespace)-1] = 'End'.$namespace[count($namespace)-1];
-// 		$namespace = implode(':',$namespace);
-// 	}
-// 	
-// 	if(isset($library)) {
-// 		loader()->library($library);
-// 	}
-// 	
-// 	// Load the class
-// 	loader()->add($namespace)->register();
-// 	
-// 	$class = str_replace(':','_',$namespace);
-// 	
-	// // Params to be sent to Tag
-	// $tagParams = array();
-	// $tagParams['namespace'] = $namespace;
-	// $tagParams['args'] = array();
-	// 
-	// // Creating the tag
-	// return new $class($tagParams);
-// 
-// }
 
 /** 
 * Short Description
@@ -74,13 +30,13 @@ function S($namespace = null, $library = null) {
 //////////////////////////////////////////
 ///            SCARLET CLASS           ///
 /// SHOULD NOT BE INSTATIATED DIRECTLY ///
-///          USE S() INSTEAD           ///
+///         USE S(...) INSTEAD         ///
 //////////////////////////////////////////
 
 class Scarlet
 {
 	private $namespace;
-	private static $libraries;
+	private static $libraries = array();
 	private $tag;
 
 	public function init($namespace, $library = null) {
@@ -100,7 +56,7 @@ class Scarlet
 		$this->namespace = $namespace;
 		
 		// Load the class
-		$this->register($namespace);
+		$this->register();
 		
 		$class = str_replace(':','_',$namespace);
 		
@@ -110,7 +66,11 @@ class Scarlet
 		$tagParams['args'] = array();
 		
 		// Creating the tag
-		$this->tag = new Tag($tagParams);
+		$this->tag = new $class($tagParams);
+
+		// Definitely necessary(!!) - $this's got mixed up for some reason
+		// Resulted in 3hr debug sesh... :'-(
+		$this->unregister();		
 
 		return $this->tag;
 	}
@@ -208,8 +168,13 @@ class Scarlet
 		return $this;
 	}
 	
+	private function unregister() {
+		spl_autoload_unregister(array($this, 'loadClass'));
+		return $this;
+	}
+	
 	private function loadClass() {
-		$file = $this->find($this->namespace);
+		$file = S()->find($this->namespace);
 	
 		if(!$file) {
 			throw new Exception("Cannot load namespace: $this->namespace", 1);
