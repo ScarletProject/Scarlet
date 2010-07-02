@@ -10,26 +10,6 @@
 
 require_once(dirname(__FILE__).'/../Scarlet.php');
 
-// if(!class_exists('ClassLoader')) {
-// 	require_once 'ClassLoader.php';
-// }
-// 
-// // Universal loader
-// function loader() {
-// 	if(!isset($GLOBALS['loader'])) {
-// 		// Create an Autoload Object
-// 		$GLOBALS['loader'] = new ClassLoader;
-// 		return $GLOBALS['loader'];
-// 	} else {
-// 		return $GLOBALS['loader'];
-// 	}
-// }
-// 
-// // Require Tag
-// if(!class_exists('Tag')) {
-// 	require_once('Tag.php');
-// }
-
 class Template 
 {
 	private $template;
@@ -71,19 +51,21 @@ class Template
 	}
 	
 	public function compile() {
-		$content = $this->parse($this->template);
-
 		// Recreate attachment directory
 		if(!is_dir(SCARLET_ATTACHMENT_DIR)) {
 			mkdir(SCARLET_ATTACHMENT_DIR);
 		}
 		
-		$attachments = Tag::_attachments();
-		
-		// Add the attachments to attachment directory
-		foreach ($attachments as $name => $attachment) {
-			file_put_contents($attachment['path'], $attachment['content']);
-		}
+		$content = $this->parse($this->template);
+
+
+		// 
+		// $attachments = Tag::_attachments();
+		// 
+		// // Add the attachments to attachment directory
+		// foreach ($attachments as $name => $attachment) {
+		// 	file_put_contents($attachment['path'], $attachment['content']);
+		// }
 		
 		eval('?>' . $content );
 	}
@@ -350,35 +332,35 @@ class Template
 		return $content;
 	}
 	
-	public function path($mixed = null, $value = null) {
-		if(!isset($mixed)) {
-			return $this->paths;
-		} elseif(is_array($mixed)) {
-			foreach ($mixed as $key => $value) {
-				$this->paths[$key] = $value;
-			}
-			return $this;
-		} elseif(isset($value)) {
-			$this->paths[$mixed] = $value;
-			return $this;
-		} elseif(isset($this->paths[$mixed])) {
-			return $this->paths[$mixed];
-		} else {
-			return '';
-		}
-	}
-	
-	public function removePath() {
-		$paths = func_get_args();
-
-		foreach ($paths as $path) {
-			if(isset($this->paths[$path])) {
-				unset($this->paths[$path]);
-			}
-		}
-
-		return $this;
-	}
+	// public function path($mixed = null, $value = null) {
+	// 	if(!isset($mixed)) {
+	// 		return $this->paths;
+	// 	} elseif(is_array($mixed)) {
+	// 		foreach ($mixed as $key => $value) {
+	// 			$this->paths[$key] = $value;
+	// 		}
+	// 		return $this;
+	// 	} elseif(isset($value)) {
+	// 		$this->paths[$mixed] = $value;
+	// 		return $this;
+	// 	} elseif(isset($this->paths[$mixed])) {
+	// 		return $this->paths[$mixed];
+	// 	} else {
+	// 		return '';
+	// 	}
+	// }
+	// 
+	// public function removePath() {
+	// 	$paths = func_get_args();
+	// 
+	// 	foreach ($paths as $path) {
+	// 		if(isset($this->paths[$path])) {
+	// 			unset($this->paths[$path]);
+	// 		}
+	// 	}
+	// 
+	// 	return $this;
+	// }
 	
 }
 

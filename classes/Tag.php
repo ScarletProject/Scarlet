@@ -33,7 +33,7 @@ class Tag
 	
 	private
 		$args = array(),
-		$location,
+		$file,
 		$namespace
 	;
 	
@@ -44,18 +44,18 @@ class Tag
 	////////////////////////////////////////////////////////
 	
 	public function __construct(array $init) {
-		$constants = get_defined_constants(true);
-		
-		foreach ($constants['user'] as $key => $value) {
-			if(strstr($key, 'SCARLET_') !== false) {
-				$this->path($key, $value);
-			}
-		}
+		// $constants = get_defined_constants(true);
+		// 
+		// foreach ($constants['user'] as $key => $value) {
+		// 	if(strstr($key, 'SCARLET_') !== false) {
+		// 		$this->path($key, $value);
+		// 	}
+		// }
 			
 		$this->namespace = $init['namespace'];	
 		
-		$this->location = loader()->find($this->namespace);
-		$this->path('here', dirname($this->location));	
+		$this->file = $this->find($this->namespace);
+		// $this->path('here', dirname($this->location));	
 		
 		// if(isset($init['args'])) {
 		// }
@@ -519,11 +519,6 @@ class Tag
 	// 	return new $class($tagParams);
 	// }
 	
-	public function location() {
-		return dirname($this->location);
-	}
-
-	
 	public function __tostring() {
 
 		// if($this->_has_runtime_args()) {
@@ -556,7 +551,35 @@ class Tag
 	////////////////////////////////////////////////////////
 	////////            Internal Functions          ////////
 	//////// ONLY USE IF YOU KNOW WHAT YOU'RE DOING ////////
+	////////          ARE SUBJECT TO CHANGE!        ////////
 	////////////////////////////////////////////////////////
+	
+	
+	public function location($namespace = null) {
+		if(isset($namespace)) {
+			return S()->location($namespace);
+		} else {
+			return dirname($this->file);
+		}
+	}
+	
+	public function find($namespace = null) {
+		if(isset($namespace)) {
+			return S()->find($namespace);
+		} else {
+			return $this->file;
+		}
+	}
+	
+	public function library() {
+		$libraries = func_get_args();
+		throw new Exception("Unsafe Operation: Use S()->library(".implode(', ', $libraries).") instead", 1);
+	}
+	
+	public function removeLibrary() {
+		$libraries = func_get_args();
+		throw new Exception("Unsafe Operation: Use S()->removeLibrary(".implode(', ', $libraries).") instead", 1);
+	}
 	
 	private function _render() {
 		try {  
@@ -699,7 +722,7 @@ class Tag
 			$location = dirname(loader()->find($namespace));
 			$path = $location.'/'.$file;
 		} else {
-			$loc = realpath(dirname($this->location));
+			$loc = realpath($this->location());
 			$main_dir = $loc;
 			$path = $main_dir.'/'.$assert;
 		}

@@ -65,7 +65,7 @@ class ClassLoader
 		
 	}
 
-	public function find($namespace) {		
+	private function find($namespace) {		
 		foreach ($this->libraries as $lib) {
 			$ns = explode(':',$namespace);
 			$class = end($ns);
@@ -91,11 +91,6 @@ class ClassLoader
 		}
 		
 		return false;
-	}
-	
-	public function location($namespace) {
-		$location = $this->find($namespace);
-		return dirname($location);
 	}
 }
 
