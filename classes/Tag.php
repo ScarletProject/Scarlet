@@ -543,7 +543,7 @@ class Tag
 			}
 
 			
-			$out = $this->tostring();
+			$out = (string) $this->tostring();
 
 			// Wrap it right up
 			$out = $this->_wrapper($out);
