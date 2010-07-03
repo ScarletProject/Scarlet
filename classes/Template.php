@@ -29,9 +29,10 @@ class Template
 	;
 	
 	function __construct($template = 'master.tpl') {
-		if(end(explode('.', $template)) != 'tpl') {
-			throw new Exception("Not a .tpl file!", 1);
-		} elseif(!file_exists($template)) {
+		// if(end(explode('.', $template)) != 'tpl') {
+		// 	throw new Exception("Not a .tpl file!", 1);
+		// }
+		if(!file_exists($template)) {
 			throw new Exception('File doesn\'t exist! '.$template, 1);
 		}
 		
@@ -53,11 +54,16 @@ class Template
 		eval('?>' . $content );
 	}
 	
-	public function parse($template) {
-		$content = file_get_contents($template);
+	public function parse($template, $is_content = false) {
+		if($is_content) {
+			$content = $template;
+		} else {
+			$content = file_get_contents($template);
+		}
 		
 		$ignore = array(
 			"html" => array("<!--", "-->"),
+			
 			"php" => array("<?php","?>"), 
 			"jeeves" => array("/{","}/"),
 			"script" => array("<script","</script>"),
@@ -103,7 +109,11 @@ class Template
 			$content = $this->push($old, $final, $content);
 			
 		}
+		
+		$content = $this->showBlocks($content);
 
+		// echo htmlspecialchars($content);
+		// exit(0);
 		return $content;
 	}
 	
@@ -287,11 +297,11 @@ class Template
 			$found_tags = $this->pull($content, $start, $end);
 
 			foreach ($found_tags as $found_tag) {
-				$content = $this->push($found_tag, '<!--'.$name.'-->', $content);	
-				$this->ignored_content[$name][] = $found_tag;
+				$content = $this->push($start.$found_tag.$end, '<!--'.$name.'-->', $content);	
+				$this->ignored_content[$name][] = $start.$found_tag.$end;
 			}
 		}
-		
+
 		return $content;
 	}
 	
@@ -301,6 +311,7 @@ class Template
 				$content = $this->push('<!--'.$language.'-->',$replace, $content);
 			}
 		}
+			
 		$this->ignored_content = array();
 		
 		return $content;
