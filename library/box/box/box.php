@@ -13,16 +13,17 @@ class Box extends Tag
 	
 	function init()
 	{
-		$this->defaults('width', 'height', 'background', 'border');
-		$this->script('cycle');
+		$this->defaults('width', 'height', 'color', 'border');
+
 		$this->width($this->args('width'));
 		$this->height($this->args('height'));
-		$this->style('background-color', $this->args('background-color'));
+		$this->style('background-color', $this->args('color'));
 		$this->style('border', $this->args('border'));
 		
-		if($this->args('rounded')) {
-			$this->stylesheet('box:rounded:rounded.css');
-		}
+		// Implement later if necessary...
+		// if($this->args('rounded')) {
+		// 	$this->become('box:rounded');
+		// }
 	}
 	
 	function tostring() {

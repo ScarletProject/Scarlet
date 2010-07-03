@@ -86,28 +86,26 @@ class TagTestCase extends PHPUnit_Framework_TestCase
     }
 
 	public function testExtend() {
+		$blarg = S('box');
+		
 		$john = S('box:rounded')->args(array('3px', 'width'=>'200', 'height'=>'200', 'background-color'=>'orange', 'border'=>'4px solid green'));
 
 		// Extension
-		$john->extend('box');
+		$john->extend($blarg);
 
 		// $john->defaults('rounded');
 
 		$john->stylesheet('box:rounded:rounded.css');
-
 
 		$john->attr('name', 'john mayer')
 				->addClass('rounded');
 		
 		
 		echo $john;
-		
+
 		$j = $this->rasterize($john);
-		
-		$this->markTestSkipped(
-			'Test data was lost for this one - passed before, not too worried - I\'ll take care of this later.'
-        );
-		
+	
+		// $this->fail();
 	}
 
     public function testStylesheet() {
@@ -925,10 +923,14 @@ class TagTestCase extends PHPUnit_Framework_TestCase
      * @todo Implement testGive().
      */
     public function testGive() {
-        // Remove the following lines when you implement this test.
-        $this->markTestIncomplete(
-          'This test has not been implemented yet.'
-        );
+        S('box:rounded')->give('rounded.css', 'roundness', '20px');
+		S('box:rounded')->give('sayHello.js', 'wahoo', 'You poisoned the waterhole!');
+		// echo S('css');
+		// echo S('javascript');
+
+		$this->markTestSkipped('
+			Need more libraries to really test this one.
+		');
     }
 
     public function testId() {

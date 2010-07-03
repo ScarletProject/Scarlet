@@ -30,7 +30,7 @@ class Slideshow extends Tag
 		// Build slideshow layout
 		foreach ($this->args('slides') as $i => $slide) {
 
-			if($i > 1) {
+			if($i > 0) {
 				$slide->style('display', 'none');
 			}
 			$out .= $slide;

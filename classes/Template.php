@@ -84,6 +84,13 @@ class Template
 			$function = array_shift($tokens);
 			$function = trim(substr($function,1));
 
+			// if($function == 'box') {
+			// 	echo '<hr/><strong>$tokens:</strong>';
+			// 	echo '<pre>';
+			// 	print_r($tokens);
+			// 	echo '</pre><hr/>';
+			// }
+
 			// Post-evaluation tags
 			if($function[0] == '&') {
 				$new_tag = str_replace('&','',$tags[$i]);	
@@ -146,7 +153,7 @@ class Template
 			$tokens[$i] = trim($tokens[$i]);
 
 			// Last character is =, then associative
-			if($tokens[$i][strlen($tokens[$i])-1] == '=') {
+			if($tokens[$i][strlen($tokens[$i])-1] == ':') {
 				$key = substr($tokens[$i], 0, strlen($tokens[$i])-1);
 				$key = trim($key,'\'" ');
 

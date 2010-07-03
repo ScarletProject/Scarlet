@@ -39,7 +39,10 @@ class Tag
 	private $initialized = false;
 	
 	private $extends;
-
+	
+	// To be implemented later! Used to prevent endless recursion
+	private static $extend_stack = array();
+	private static $become_stack = array();
 	////////////////////////////////////////////////////////
 	////////               Public API               ////////
 	////////////////////////////////////////////////////////
@@ -56,6 +59,12 @@ class Tag
 	public function extend($namespace, $library = null) {
 		$this->extends = S($namespace, $library);
 	}
+
+	/*
+	public function become($namespace, $library = null) {
+		$this->becomes = S($namespace, $library);
+	}
+	*/
 
 	public function stylesheet() {
 		$stylesheets = func_get_args();
@@ -301,21 +310,21 @@ class Tag
 		}
 		
 		if($left === true) {
-			$this->left_wrap = 'div';
+			$this->_leftWrap('div');
 		} if($right === true) {
-			$this->right_wrap = 'div';
+			$this->_rightWrap('div');
 		}
 		
 		if($left === false) {
-			$this->left_wrap = false;
+			$this->_leftWrap(false);
 		} if($right === false) {
-			$this->right_wrap = false;
+			$this->_rightWrap(false);
 		}
 		
 		if(is_string($left)) {
-			$this->left_wrap = $left;
+			$this->_leftWrap($left);
 		} if(is_string($right)) {
-			$this->right_wrap = $right;
+			$this->_rightWrap($right);
 		}
 		
 		return $this;
@@ -409,23 +418,63 @@ class Tag
 	}
 
 	// Deal with later.
-	public function useDefaults($namespace = null) {
-		if(!isset($namespace)) {
+	// public function useDefaults($namespace = null) {
+	// 	if(!isset($namespace)) {
+	// 		return $this;
+	// 	}
+	// 	
+	// 	$tag = S($namespace)->args($this->args());
+	// 	$tag->init();
+	// 	$tag->_initialized(true);
+	// 	
+	// 	$this->args = $tag->args();
+	// 	
+	// 	return $this;
+	// }
+	// 
+	
+	public function give($sheet = null, $mixed = null, $value = null) {
+		if(!isset($sheet) || !isset($mixed)) {
 			return $this;
 		}
 		
-		$tag = S($namespace)->args($this->args());
-		$tag->init();
-		$tag->_initialized(true);
+		$sheet_parts = explode('.', $sheet);
+		$suffix = end($sheet_parts);
 		
-		$this->args = $tag->args();
+		if(!($suffix == 'css' || $suffix == 'js')) {
+			throw new Exception("Give only works with JS and CSS files!", 1);
+		}
+		
+		$file = $this->_map($sheet);
+		//	echo $sheet;
+		$content = file_get_contents($file);
+		
+		if(!is_array($mixed)) {
+			$mixed = array($mixed => $value);
+		}
+
+		
+		foreach($mixed as $var => $value) {			
+			// Replace variables	
+			$pattern = '/\$'.$var.'/';
+		
+			if($suffix == 'js') {
+				$replace = $this->_php_to_javascript_var($value);
+			} else {
+				$replace = $value;
+			}
+		
+			$content = preg_replace($pattern, $replace, $content);
+			$this->attach($sheet, $content, true);
+			
+			if($suffix == 'js') {
+				$this->script($this->attach($sheet));
+			} else {
+				$this->stylesheet($this->attach($sheet));
+			}
+		}
 		
 		return $this;
-	}
-	
-	// Deal with later.
-	public function give() {
-		
 	}
 	
 	public function id($id = null) {
@@ -487,6 +536,23 @@ class Tag
 	////////          ARE SUBJECT TO CHANGE!        ////////
 	////////////////////////////////////////////////////////
 	
+	public function _leftWrap($wrap = null) {
+		if(!isset($wrap)) {
+			return $this->left_wrap;
+		} else {
+			$this->left_wrap = $wrap;
+			return $this;
+		}
+	}
+	
+	public function _rightWrap($wrap = null) {
+		if (!isset($wrap)) {
+			return $this->right_wrap;
+		} else {
+			$this->right_wrap = $wrap;
+			return $this;
+		}
+	}
 	
 	public function location($namespace = null) {
 		if(isset($namespace)) {
@@ -518,44 +584,6 @@ class Tag
 		return $this;
 	}
 	
-	private function _render() {
-		try {  
-			
-			if(isset($this->extends)) {
-				$this->_extender();
-			}
-
-			// If not already initialized.
-			if(!$this->_initialized()) {
-			    
-				if(!method_exists($this, 'init')) {
-					throw new Exception("init() method required!", 1);
-				}
-				
-				// Really late initialization, JIT I hope.
-				$this->init();
-				$this->_initialized(true);
-			}
-		
-			// Get the string representation of the tag
-			if(!method_exists($this, 'tostring')) {
-				throw new Exception("tostring() method required!", 1);
-			}
-
-			
-			$out = (string) $this->tostring();
-
-			// Wrap it right up
-			$out = $this->_wrapper($out);
-		
-		} catch(Exception $e) {  
-	        trigger_error($e->getMessage(), E_USER_ERROR);  
-	        return '';  
-	    }
-		
-		return $out;
-	}
-	
 	public function _initialized($init = null) {
 		if(isset($init)) {
 			$this->initialized = $init;
@@ -580,6 +608,49 @@ class Tag
 	////////////////////////////////////////////////////////
 	////////            Private Functions           ////////
 	////////////////////////////////////////////////////////
+	private function _render() {
+		try {
+			// If not already initialized.
+			if(!$this->_initialized()) {
+			    
+				if(!method_exists($this, 'init')) {
+					throw new Exception("init() method required!", 1);
+				}
+				
+				// Really late initialization, JIT - I hope!
+				$this->init();
+				$this->_initialized(true);
+		
+				/*
+				if(isset($this->becomes)) {				
+					$this->_becomer();
+					return $this->becomes->_render();
+				}*/
+
+			}
+			
+			if(isset($this->extends)) {
+				$this->_extender();
+			}
+			
+		
+			// Get the string representation of the tag
+			if(method_exists($this, 'tostring')) {
+				$out = (string) $this->tostring();
+			} else {
+				$out = '';
+			}
+
+			// Wrap it right up
+			$out = $this->_wrapper($out);
+		
+		} catch(Exception $e) {  
+	        trigger_error($e->getMessage(), E_USER_ERROR);  
+	        return '';  
+	    }
+		
+		return $out;
+	}
 	
 	private function _wrapper($out) {
 		if($this->left_wrap !== false) {
@@ -667,14 +738,14 @@ class Tag
 		}
 
 		// For now just take out all the defaults
-		$args = array();
-		foreach ($this->arg() as $key => $value) {
-			if(!is_numeric($key)) {
-				$args[$key] = $value;
-			}
-		}
+		// $args = array();
+		// foreach ($this->arg() as $key => $value) {
+		// 	if(!is_numeric($key)) {
+		// 		$args[$key] = $value;
+		// 	}
+		// }
 
-		$e->arg($args);
+		$e->arg($this->args());
 		$e->_render();
 		$e->_initialized(true);
 
@@ -684,12 +755,43 @@ class Tag
 		$this->attr($e->attr());
 		
 		// If you didn't set wrap, let extended decide how to wrap it.
-		// if(!$this->wrap_set) {
-		// 	$this->wrap($e->_leftwrap(), $e->_rightwrap());
-		// }
+		if(!$this->wrap_set) {
+			$this->wrap($e->_leftWrap(), $e->_rightWrap());
+		}
 		
 		return $this;
 	}
+/*
+
+	private function _becomer() {
+		$b = $this->becomes;
+		$b->args($this->args());
+	}
+
+*/
+	private function _php_to_javascript_var($val) {
+		$out = '';
+		if(is_string($val)) {
+			$val = addslashes($val);
+			$out .= '"'.$val.'"';
+		}
+		// Array args going to need to be recursive to be fully functional..
+		elseif(is_array($val)) {
+			foreach ($val as $i => $v) {
+				$val[$i] = addslashes($v);
+			}
+			$val = implode('","', $val);
+			$val = '["'.$val.'"]';
+			$out .= $val;
+		}
+		elseif(is_numeric($val) || is_bool($val))
+			$out .= $val;
+		else
+			$this->error("Unable to convert PHP args to JS",__CLASS__,__FUNCTION__,__LINE__);
+
+		return $out;
+	}
+
 }
 
 
