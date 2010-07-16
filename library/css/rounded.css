@@ -1,0 +1,76 @@
+.rounded {
+  -moz-border-radius-bottomleft: $roundness;
+  -webkit-border-bottom-left-radius: $roundness;
+  -moz-border-radius-bottomright: $roundness;
+  -webkit-border-bottom-right-radius: $roundness;
+  -moz-border-radius-topleft: $roundness;
+  -webkit-border-top-left-radius: $roundness;
+  -moz-border-radius-topright: $roundness;
+  -webkit-border-top-right-radius: $roundness;
+}
+
+.rounded.top {
+	-moz-border-radius-bottomleft: 0px;
+	-webkit-border-bottom-left-radius: 0px;
+	-moz-border-radius-bottomright: 0px;
+	-webkit-border-bottom-right-radius: 0px;
+	-moz-border-radius-topleft: $roundness;
+	-webkit-border-top-left-radius: $roundness;
+	-moz-border-radius-topright: $roundness;
+	-webkit-border-top-right-radius: $roundness;
+}
+
+.rounded.bottom {
+	-moz-border-radius-bottomleft: $roundness;
+	-webkit-border-bottom-left-radius: $roundness;
+	-moz-border-radius-bottomright: $roundness;
+	-webkit-border-bottom-right-radius: $roundness;
+	-moz-border-radius-topleft: 0px;
+	-webkit-border-top-left-radius: 0px;
+	-moz-border-radius-topright: 0px;
+	-webkit-border-top-right-radius: 0px;
+
+}
+
+.rounded.left {
+  -moz-border-radius-topleft: $roundness;
+  -webkit-border-top-left-radius: $roundness;
+  -moz-border-radius-bottomleft: $roundness;
+  -webkit-border-bottom-left-radius: $roundness;
+  -moz-border-radius-topright: 0px;
+  -webkit-border-top-right-radius: 0px;
+  -moz-border-radius-bottomright: 0px;
+  -webkit-border-bottom-right-radius: 0px;
+
+}
+
+.rounded.right {
+  -moz-border-radius-topright: $roundness;
+  -webkit-border-top-right-radius: $roundness;
+  -moz-border-radius-bottomright: $roundness;
+  -webkit-border-bottom-right-radius: $roundness;
+  -moz-border-radius-topleft: 0px;
+  -webkit-border-top-left-radius: 0px;
+  -moz-border-radius-bottomleft: 0px;
+  -webkit-border-bottom-left-radius: 0px;
+}
+
+.rounded.top.left {
+  -moz-border-radius-bottomleft: 0px;
+  -webkit-border-bottom-left-radius: 0px;
+}
+
+.rounded.bottom.left {
+  -moz-border-radius-topleft: 0px;
+  -webkit-border-top-left-radius: 0px;
+}
+
+.rounded.top.right {
+  -moz-border-radius-bottomright: 0px;
+  -webkit-border-bottom-right-radius: 0px;
+}
+
+.rounded.bottom.right {
+  -moz-border-radius-topright: 0px;
+  -webkit-border-top-right-radius: 0px;
+}

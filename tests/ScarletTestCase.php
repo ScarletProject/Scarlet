@@ -93,7 +93,7 @@ class ScarletTestCase extends PHPUnit_Framework_TestCase
 		$S->library('../test-library-0');
 		$file = $S->find('john:mayer');
 		
-		$path = $_SERVER['DOCUMENT_ROOT'].'/ScarletFinal/test-library-0/john/mayer/mayer.php';
+		$path = $_SERVER['DOCUMENT_ROOT'].'/Scarlet/test-library-0/john/mayer/mayer.php';
 		$this->assertEquals(0, strcasecmp($path , $file), 'Found mayer' );
 		
 		$S->library('../../test-library-1');
@@ -109,7 +109,7 @@ class ScarletTestCase extends PHPUnit_Framework_TestCase
 
 		// Given namespace always overrides implicit
 		$file = $S->find('viva:la:vida');
-		$path = $_SERVER['DOCUMENT_ROOT'].'/ScarletFinal/test-library-0/viva/la/vida/vida.php';
+		$path = $_SERVER['DOCUMENT_ROOT'].'/Scarlet/test-library-0/viva/la/vida/vida.php';
 		$this->assertEquals(0, strcasecmp($path , $file), 'Found runner' );
 		
 		// Test a namespace that isn't there
@@ -123,7 +123,7 @@ class ScarletTestCase extends PHPUnit_Framework_TestCase
 		
 		// Default library
 		$arr = $S->library();
-		$this->assertContains( '/Users/Matt/Sites/ScarletFinal/library', $arr, '1. library has: '.'/Users/Matt/Sites/ScarletFinal/library' );
+		$this->assertContains( '/Users/Matt/Sites/Scarlet/library', $arr, '1. library has: '.'/Users/Matt/Sites/Scarlet/library' );
 		
 		// Add library
 		$tag = key($data);

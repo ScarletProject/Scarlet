@@ -149,13 +149,13 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		$this->assertContains($location.'/stylesheets/style12.css', $arr, 'stylesheets contain style12.css' );
 
 		// Now need to check for absolute paths
-		$return = $tag->stylesheet('/ScarletFinal/test-library-1/tribal/runner/stylesheets/style13.css');
+		$return = $tag->stylesheet('/Scarlet/test-library-1/tribal/runner/stylesheets/style13.css');
 		$location = dirname(S()->find('tribal:runner'));
 		$arr = $tag->stylesheet();
 		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($location.'/stylesheets/style13.css', $arr, 'stylesheets contain style13.css' );
 
-		$return = $tag->stylesheet('/Users/Matt/Sites/ScarletFinal/tests/test-library-0/viva/la/vida/stylesheets/style14.css');
+		$return = $tag->stylesheet('/Users/Matt/Sites/Scarlet/tests/test-library-0/viva/la/vida/stylesheets/style14.css');
 		$location = dirname(S()->find('viva:la:vida'));
 		$arr = $tag->stylesheet();
 		$this->assertSame( $tag, $return, 'returned value is a tag' );
@@ -174,7 +174,7 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		// $tag->removeStylesheet($tag->)
 		// 
 		// // Take an array of stylesheets
-		// $return = $tag->stylesheet(array('grid', '/Users/Matt/Sites/ScarletFinal/tests/test-library-0/viva/la/vida/stylesheets/style14.css', 'viva:la:vida:style5.css', 'tribal:runner:stylesheets/style12.css'));
+		// $return = $tag->stylesheet(array('grid', '/Users/Matt/Sites/Scarlet/tests/test-library-0/viva/la/vida/stylesheets/style14.css', 'viva:la:vida:style5.css', 'tribal:runner:stylesheets/style12.css'));
 		
     }
 
@@ -299,13 +299,13 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		$this->assertContains($location.'/scripts/script12.js', $arr, 'scripts contain script12.js' );
 
 		// Now need to check for absolute paths
-		$return = $tag->script('ScarletFinal/test-library-1/tribal/runner/scripts/script13.js');
+		$return = $tag->script('Scarlet/test-library-1/tribal/runner/scripts/script13.js');
 		$location = S()->location('tribal:runner');
 		$arr = $tag->script();
 		$this->assertSame( $tag, $return, 'returned value is a tag' );
 		$this->assertContains($location.'/scripts/script13.js', $arr, 'scripts contain script13.js' );
 
-		$return = $tag->script('Users/Matt/Sites/ScarletFinal/tests/test-library-0/viva/la/vida/scripts/script14.js');
+		$return = $tag->script('Users/Matt/Sites/Scarlet/tests/test-library-0/viva/la/vida/scripts/script14.js');
 		$location = S()->location('viva:la:vida');
 		$arr = $tag->script();
 		$this->assertSame( $tag, $return, 'returned value is a tag' );
@@ -432,7 +432,7 @@ class TagTestCase extends PHPUnit_Framework_TestCase
 		////////////////////////////////////////
 
 		define('SCARLET_ATTACHMENT_DIR', realpath(dirname(__FILE__).'/../scarlet_attachments'));
-		$loc = '/ScarletFinal/tests/scarlet_attachments';
+		$loc = '/Scarlet/tests/scarlet_attachments';
 		
 		// Add a script to the attachment directory
 		$return = $tag->attach('script5.js', 'john:mayer:script5.js');
@@ -459,7 +459,7 @@ class TagTestCase extends PHPUnit_Framework_TestCase
     public function testDetach() {
 		$tag = S('when:love:comes');
 		
-		$loc = '/ScarletFinal/tests/scarlet_attachments';
+		$loc = '/Scarlet/tests/scarlet_attachments';
 		
 		$arr = $tag->attach();
 		$this->assertTrue( is_array($arr), 'no params returns attachment array' );

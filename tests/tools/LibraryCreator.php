@@ -143,7 +143,7 @@ class LibraryCreator
 	private function createClass($className) {
 	$className = str_replace(":", "_", $className);
 	$class = '<?php
-		include_once($_SERVER["DOCUMENT_ROOT"]."/ScarletFinal/Scarlet.php");
+		include_once($_SERVER["DOCUMENT_ROOT"]."/Scarlet/Scarlet.php");
 
 		class '.$className.' extends Tag {
 			function init() {

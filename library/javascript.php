@@ -73,7 +73,7 @@ class Javascript extends Tag {
 	
 		// Merge all the scripts together
 		$scripts = implode("\n\n /* -------------- */ \n\n", $scripts);		
-		
+				
 		// Add to .Scarlet directory
 		$this->attach('scarlet.js', $scripts, true);
 
@@ -82,7 +82,7 @@ class Javascript extends Tag {
 		return $out;
 	}
 	
-	private function map($script) {
+	public function map($script) {
 		if($this->exists($script)) {
 			return $this->$script();
 		} else {
