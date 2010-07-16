@@ -39,8 +39,9 @@ class Attribute {
 	
 	public static function theme($value, $Tag) {
 		// Temporarily include the new library
-		S()->library(SCARLET_PROJECT_THEME_DIR.'/'.$value);
-		
+		if(defined('SCARLET_PROJECT_THEME_DIR')) {
+			S()->library(SCARLET_PROJECT_THEME_DIR.'/'.$value);
+		}
 	}
 }
 

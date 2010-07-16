@@ -9,15 +9,12 @@
 */
 
 require_once(dirname(__FILE__).'/../Scarlet.php');
+require_once(dirname(__FILE__).'/Attributes.php');
 
 class Template 
 {
 	private $template;
 
-	private
-		$paths = array()
-	;
-	
 	private 
 		$stylesheets = array(),
 		$scripts = array(),
@@ -28,27 +25,58 @@ class Template
 		$ignored_content
 	;
 	
-	function __construct($template = 'master.tpl') {
+	function __construct($template) {
 		// if(end(explode('.', $template)) != 'tpl') {
 		// 	throw new Exception("Not a .tpl file!", 1);
 		// }
+		if(!isset($template)) {
+			throw new Exception('Need to include a template');
+		}
+		
 		if(!file_exists($template)) {
 			throw new Exception('File doesn\'t exist! '.$template, 1);
 		}
 		
-		$this->template = $template;
+		$this->template = realpath($template);
 		
-		define('SCARLET_PROJECT_DIR', dirname(realpath($template)));
-		define('SCARLET_ATTACHMENT_DIR', SCARLET_PROJECT_DIR.'/.scarlet');
-		
+		S()->path('template', dirname($this->template));
 	}
 	
-	public function compile() {
-		// Recreate attachment directory
-		if(!is_dir(SCARLET_ATTACHMENT_DIR)) {
-			mkdir(SCARLET_ATTACHMENT_DIR);
+	public function projectPath($path = null) {
+		if(!isset($path)) {
+			return S()->path('project');
 		}
+
+		$path = realpath($path);
+
+		if(basename($path) != 'Scarlet') {
+			if(is_dir($path.'/Scarlet')) {
+				$path .= '/Scarlet';
+			} else {
+				throw new Exception("Unable to locate your Scarlet Directory in: $path", 1);
+			}
+		}
+
+		if(!is_dir($path)) {
+			throw new Exception("Unable to locate your Scarlet Directory at: $path", 1);
+		}
+
+		// Make sure its not the main Scarlet directory
+		if(file_exists($path.'/Scarlet.php')) {
+			throw new Exception("Found Scarlet.php in Scarlet Directory, this is the main Scarlet Library, please include Scarlet directory thats in your project ", 1);
+		}
+
+		$S = S();
+		// Define the specifics
+		$S->path('project', $path);
+		$S->path('attachments', $S->path('project').'/attachments');
+		$S->path('project_library', $S->path('project').'/library');
+		$S->path('themes', $S->path('project').'/themes');
 		
+	}		
+	
+	public function compile() {
+
 		$content = $this->parse($this->template);
 
 		eval('?>' . $content );
@@ -63,7 +91,6 @@ class Template
 		
 		$ignore = array(
 			"html" => array("<!--", "-->"),
-			
 			"php" => array("<?php","?>"), 
 			"jeeves" => array("/{","}/"),
 			"script" => array("<script","</script>"),
@@ -100,7 +127,6 @@ class Template
 			}
 
 			$Tag = $this->read($tokens, $function);
-			
 			if(!method_exists($Tag, 'init')) {
 				throw new Exception('init method required for: '.$function, 1);
 			}
@@ -130,7 +156,7 @@ class Template
 		$string = '(?:[\'"]'.$oneChar.'*[\'"])';
 		$varName = '\\$(?:'.$oneChar.'[^ \\],}\n\t]*)';
 		$func = '(?:{[ \t\n]*'.$oneChar.'[^ \n\t}]*)';
-		$assoc = '(?:[\"\']?\w+[\"\']?[ ]*:)';
+		$assoc = '(?:[\"\']?\w+[\"\']?[ ]*=)';
 		
 		$scarletToken = '@(?:false|true|null'
 		  .'|[\\}\\]\\[]'
@@ -153,7 +179,7 @@ class Template
 			$tokens[$i] = trim($tokens[$i]);
 
 			// Last character is =, then associative
-			if($tokens[$i][strlen($tokens[$i])-1] == ':') {
+			if($tokens[$i][strlen($tokens[$i])-1] == '=') {
 				$key = substr($tokens[$i], 0, strlen($tokens[$i])-1);
 				$key = trim($key,'\'" ');
 
@@ -243,8 +269,8 @@ class Template
 			$namespace = implode(':',$namespace);
 		}
 
-		$Tag = S($namespace)->args($args);
-				
+		$Tag = S($namespace)->args($args);		
+
 		$class = str_replace(':','_',$namespace);
 		// Allow plugins to be built on the template.
 		if(method_exists($this,$method = 'hook_'.$class)) {

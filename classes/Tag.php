@@ -7,6 +7,9 @@
 * @package Tag
 * @author Matt Mueller
 */
+if(!class_exists('Attribute')) {
+	require_once(dirname(__FILE__).'/Attributes.php');
+}
 
 class Tag
 {
@@ -18,8 +21,13 @@ class Tag
 	private static 
 		$stylesheets = array(),
 		$scripts = array(),
-		$paths = array(),
 		$attachments = array()
+	;
+	
+	// Assets used for this specific tag
+	private
+		$used_stylesheets = array(),
+		$used_scripts = array()
 	;
 	
 	private 
@@ -35,7 +43,7 @@ class Tag
 		$file,
 		$namespace
 	;
-	
+
 	private $initialized = false;
 	
 	private $extends;
@@ -51,6 +59,7 @@ class Tag
 
 		$this->namespace = $init['namespace'];	
 		$this->file = $this->find($this->namespace);
+		
 		$this->args($init['args']);
 		
 		return $this;
@@ -68,17 +77,29 @@ class Tag
 
 	public function stylesheet() {
 		$stylesheets = func_get_args();
-
+				
 		if(empty($stylesheets)) {
 			return self::$stylesheets;
 		}
 
+
 		foreach ($stylesheets as $sheet) {
-			// Defer responsibility - ie. grid
-			if(strstr($sheet, '.') === false) {
-				self::$stylesheets[] = $sheet;
+			if(!isset($sheet) || !$sheet) {
+				continue;
+			}
+			elseif(strstr($sheet, '.') === false) {
+				// Defer responsibility to css tag - ie. rounded
+				self::$stylesheets[$sheet] = $sheet;
+				$this->used_stylesheets[$sheet] = $sheet;
+			} elseif(stristr($sheet, '/')) {
+				$sheet = basename($sheet);
+				$mapped_sheet = $this->_map($sheet);
+				self::$stylesheets[$sheet] = $mapped_sheet;
+				$this->used_stylesheets[$sheet] = $mapped_sheet;
 			} else {
-				self::$stylesheets[] = $this->_map($sheet);
+				$mapped_sheet = $this->_map($sheet);
+				self::$stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
+				$this->used_stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
 			}
 		}
 
@@ -122,11 +143,22 @@ class Tag
 		}
 
 		foreach ($scripts as $script) {
-			// Defer responsibility - ie. jquery
-			if(strstr($script, '.') === false) {
-				self::$scripts[] = $script;
+			if(!isset($script) || !$script) {
+				continue;
+			}
+			elseif(strstr($script, '.') === false) {
+				// Defer responsibility to javascript tag - ie. jquery
+				self::$scripts[$script] = $script;
+				$this->used_scripts[$script] = $script;
+			} elseif(stristr($script, '/')) {
+				$script = basename($script);
+				$mapped_script = $this->_map($script);
+				self::$scripts[$script] = $mapped_script;
+				$this->used_scripts[$script] = $mapped_script;
 			} else {
-				self::$scripts[] = $this->_map($script);
+				$mapped_script = $this->_map($script);
+				self::$scripts[$this->namespace.':'.$script] = $mapped_script;
+				$this->used_scripts[$this->namespace.':'.$script] = $mapped_script;
 			}
 		}
 
@@ -171,9 +203,9 @@ class Tag
 			} else {
 				return '';
 			}
-		} elseif(defined('SCARLET_ATTACHMENT_DIR')) {
-			$path = realpath(SCARLET_ATTACHMENT_DIR);
-			if($write) {
+		} elseif(S()->path('attachments')) {
+			$path = S()->path('attachments');
+			if($write) {				
 				file_put_contents($path.'/'.$mixed, $value);
 			} else {
 				$value = $this->_map($value);
@@ -189,7 +221,7 @@ class Tag
 			$path = trim($path, ' /');
 			self::$attachments[$mixed] = '/'.$path.'/'.$mixed;
 		}
-		
+
 		return $this;
 	}
 
@@ -470,7 +502,8 @@ class Tag
 			if($suffix == 'js') {
 				$this->script($this->attach($sheet));
 			} else {
-				$this->stylesheet($this->attach($sheet));
+				$sheet = $this->attach($sheet);
+				$this->stylesheet($sheet);
 			}
 		}
 		
@@ -535,6 +568,14 @@ class Tag
 	//////// ONLY USE IF YOU KNOW WHAT YOU'RE DOING ////////
 	////////          ARE SUBJECT TO CHANGE!        ////////
 	////////////////////////////////////////////////////////
+	
+	public function _used_scripts() {
+		return $this->used_scripts;
+	}
+	
+	public function _used_stylesheets() {
+		return $this->used_stylesheets;
+	}
 	
 	public function _leftWrap($wrap = null) {
 		if(!isset($wrap)) {
@@ -617,6 +658,21 @@ class Tag
 					throw new Exception("init() method required!", 1);
 				}
 				
+				// Add all the normal attributes
+				foreach ($this->arg() as $key => $value) {
+					if(is_numeric($key)) continue;
+
+					// Make it easy for people to add classes (getting around PHP's use of class)
+					if($key == 'class') {
+						$key = 'attr_'.$key;
+					}
+
+					// Map to Attribute class if method exists
+					if(method_exists('Attribute', $key)) {
+						call_user_func(array('Attribute', $key), $value, $this);				
+					}
+				}
+				
 				// Really late initialization, JIT - I hope!
 				$this->init();
 				$this->_initialized(true);
@@ -692,10 +748,18 @@ class Tag
 			$out = $out.$e_tag;
 		}
 		
+		if($this->before !== false) {
+			$out = $this->before.$out;
+		}
+		
+		if($this->after !== false) {
+			$out = $out.$this->after;
+		}
+		
 		return $out;
 	}
 	
-	private function _map($assert) {
+	public function _map($assert) {
 		
 		$assert = trim($assert,' /');
 
@@ -711,13 +775,17 @@ class Tag
 			$path = $_SERVER['DOCUMENT_ROOT'].'/'.$assert;
 		}
 		elseif (strpos($assert,':') !== false) {
-
-			$namespace = explode(':', $assert);
-			$file = array_pop($namespace);
-			$file = trim($file, ' /');
-			$namespace = implode(':', $namespace);
-			$location = dirname(S()->find($namespace));
-			$path = $location.'/'.$file;
+			$path = S()->findAsset($assert);
+			// echo "<hr/>";
+			// 			$namespace = explode(':', $assert);
+			// 			$file = array_pop($namespace);
+			// 			$file = trim($file, ' /');
+			// 			$namespace = implode(':', $namespace);
+			// 			
+			// 			echo $namespace.':'.$file;echo "<br/>";
+			// 			exit(0);
+			// 			$location = dirname(S()->findAsset($namespace));
+			// 			$path = $location.'/'.$file;
 		} else {
 			$loc = realpath($this->location());
 			$main_dir = $loc;

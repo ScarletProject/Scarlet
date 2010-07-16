@@ -4,9 +4,9 @@
 if(!class_exists('Tag')) {
 	require_once dirname(__FILE__).'/classes/Tag.php';
 }
-
-define('SCARLET_DIR', realpath(dirname(__FILE__)));
-define('SCARLET_LIBRARY_DIR', SCARLET_DIR.'/library');
+// if(!class_exists('Util')) {
+// 	require_once dirname(__FILE__).'/classes/Utilities.php';
+// }
 
 /** 
 * Short Description
@@ -16,15 +16,14 @@ define('SCARLET_LIBRARY_DIR', SCARLET_DIR.'/library');
 * @author Matt Mueller
 */
 
-function S($namespace = null, $library = null) {
+function S($namespace = null, $args = array(), $library = null) {
 	$S = new Scarlet;
-	$S->library(SCARLET_LIBRARY_DIR);
 
 	if(!isset($namespace)) {
 		return $S;
 	}
 	
-	return $S->init($namespace, $library);
+	return $S->initTag($namespace, $args, $library);
 }
 
 //////////////////////////////////////////
@@ -38,8 +37,18 @@ class Scarlet
 	private $namespace;
 	private static $libraries = array();
 	private $tag;
+	
+	private static $paths = array(
+		'scarlet' => '',
+		'scarlet_library' => '',
+		'project' => '',
+		'attachments' => '',
+		'project_library' => '',
+		'themes' => '',
+		'template' => ''
+	);
 
-	public function init($namespace, $library = null) {
+	public function initTag($namespace, $args = array(), $library = null) {
 		if($namespace instanceof Tag) return $namespace;
 		if(isset($this->tag)) return $this->tag;
 		
@@ -63,7 +72,7 @@ class Scarlet
 		// Params to be sent to Tag
 		$tagParams = array();
 		$tagParams['namespace'] = $namespace;
-		$tagParams['args'] = array();
+		$tagParams['args'] = $args;
 		
 		// Creating the tag
 		$this->tag = new $class($tagParams);
@@ -75,15 +84,52 @@ class Scarlet
 		return $this->tag;
 	}
 	
+	public function path($mixed = null, $value = null) {
+		if(!isset($mixed)) {
+			return self::$paths;
+		} elseif(is_array($mixed)) {
+			foreach ($mixed as $key => $value) {
+				self::$paths[$key] = $value;
+			}
+			return $this;
+		} elseif(isset($value)) {
+			self::$paths[$mixed] = $value;
+			return $this;
+		} elseif(isset(self::$paths[$mixed])) {
+			return self::$paths[$mixed];
+		} else {
+			return false;
+		}
+	}
+	
+	public function findAsset($asset) {
+		
+		$as = explode(':',$asset);
+		$filename = end($as);
+		$asloc = str_replace(':','/',$asset);
+
+		foreach (self::$libraries as $lib) {
+			$file = $lib.'/'.$asloc;
+			
+			if(file_exists($file)) {
+				return $file;
+			}
+		}
+		
+		return false;
+		
+	}
+	
 	public function find($namespace = null) {
 		if(!isset($namespace)) {
 			throw new Exception("No namespace given for find!", 1);
 		}
 		
+		$ns = explode(':',$namespace);
+		$class = end($ns);
+		$nsloc = str_replace(':','/',$namespace);
+		
 		foreach (self::$libraries as $lib) {
-			$ns = explode(':',$namespace);
-			$class = end($ns);
-			$nsloc = str_replace(':','/',$namespace);
 
 			$file = $lib.'/'.$nsloc;
 
@@ -118,7 +164,7 @@ class Scarlet
 
 		foreach ($paths as $path) {
 			if(is_dir(realpath($path))) {
-				self::$libraries[] = realpath($path);
+				array_unshift(self::$libraries, realpath($path));
 			}
 			else {
 				throw new Exception("Could not find Library: ".$path, 1);
@@ -163,6 +209,19 @@ class Scarlet
 		return dirname($this->find($namespace));
 	}
 	
+	public function getAssets($namespace = null, $args = array()) {
+		if(!isset($namespace)) {
+			return array();
+		}
+		
+		$tag = S($namespace)->arg($args);
+		$tag->__tostring();
+		$scripts = $tag->_used_scripts();
+		$stylesheets = $tag->_used_stylesheets();
+		
+		return array('scripts' => $scripts, 'stylesheets' => $stylesheets);
+	}
+		
 	private function register() {
 		spl_autoload_register(array($this, 'loadClass'));
 		return $this;
@@ -182,6 +241,46 @@ class Scarlet
 			require_once($file);
 		}
 	}
+	
+	private function mkdir($path) {
+		$path = trim($path);
+		$path = rtrim($path, '/');
+		$dirs = explode('/', $path);
+		if(is_dir($path)) {
+			return $path;
+		}
+		
+		$path_part = '';
+		foreach ($dirs as $dir) {
+			if($dir == '') {
+				$path_part .= '/';
+				continue;
+			}
+			$path_part .= $dir;
+			if(!is_dir($path_part)) {
+				mkdir($path_part);
+			}
+			
+			$path_part .= '/';
+		}
+			
+		return $path;
+	}
 }
+
+$S = S();
+$S->path('scarlet', realpath(dirname(__FILE__)));
+$S->path('scarlet_library', $S->path('scarlet').'/library');
+
+// Load the default library
+$S->library($S->path('scarlet_library'));
+
+S()->path('attachments', dirname(__FILE__).'/View/Scarlet/attachments');
+echo S('form:text', array('hello!'));
+
+echo '<hr/><strong>$arr:</strong>';
+echo '<pre>';
+print_r(S()->getAssets('form:text'));
+echo '</pre><hr/>';
 
 ?>
