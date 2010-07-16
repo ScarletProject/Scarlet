@@ -4,9 +4,6 @@
 if(!class_exists('Tag')) {
 	require_once dirname(__FILE__).'/classes/Tag.php';
 }
-// if(!class_exists('Util')) {
-// 	require_once dirname(__FILE__).'/classes/Utilities.php';
-// }
 
 /** 
 * Short Description
@@ -16,14 +13,19 @@ if(!class_exists('Tag')) {
 * @author Matt Mueller
 */
 
-function S($namespace = null, $args = array(), $library = null) {
+function S($ns_or_tpl = null, $args = array(), $library = null) {
 	$S = new Scarlet;
 
-	if(!isset($namespace)) {
+	if(!isset($ns_or_tpl)) {
 		return $S;
 	}
 	
-	return $S->initTag($namespace, $args, $library);
+	// Determine which way to route it.
+	if(strstr($ns_or_tpl, '.') !== false) {
+		return $S->initTemplate($ns_or_tpl);
+	} else {
+		return $S->initTag($ns_or_tpl, $args, $library);
+	}
 }
 
 //////////////////////////////////////////
@@ -36,7 +38,7 @@ class Scarlet
 {
 	private $namespace;
 	private static $libraries = array();
-	private $tag;
+	private $initialized;
 	
 	private static $paths = array(
 		'scarlet' => '',
@@ -50,7 +52,7 @@ class Scarlet
 
 	public function initTag($namespace, $args = array(), $library = null) {
 		if($namespace instanceof Tag) return $namespace;
-		if(isset($this->tag)) return $this->tag;
+		if(isset($initialized)) return $this->initialized;
 		
 		
 		if(isset($library)) {
@@ -75,13 +77,30 @@ class Scarlet
 		$tagParams['args'] = $args;
 		
 		// Creating the tag
-		$this->tag = new $class($tagParams);
+		$this->initialized = new $class($tagParams);
 
 		// Definitely necessary(!!) - $this's got mixed up for some reason
 		// Resulted in 3hr debug sesh... :'-(
 		$this->unregister();		
 
-		return $this->tag;
+		return $this->initialized;
+	}
+	
+	public function initTemplate($template) {
+		if(isset($this->initialized)) return $this->initialized;
+				
+		$suffix = end(explode('.', $template));
+		
+		if($suffix == 'tpl' || $suffix == 'php') {
+			if(!class_exists('Template')) {
+				require_once dirname(__FILE__).'/classes/Template.php';
+			}
+			$this->initialized = new Template($template);			
+		} else {
+			throw new Exception("Unable to initialize template: $template", 1);
+		}
+		
+		return $this->initialized;
 	}
 	
 	public function path($mixed = null, $value = null) {
@@ -205,6 +224,43 @@ class Scarlet
 		return $this;
 	}
 	
+	public function projectPath($path = null) {
+		if(!isset($path)) {
+			return S()->path('project');
+		}
+
+		$path = realpath($path);
+
+		if(basename($path) != 'Scarlet') {
+			if(is_dir($path.'/Scarlet')) {
+				$path .= '/Scarlet';
+			} else {
+				throw new Exception("Unable to locate your Scarlet Directory in: $path", 1);
+			}
+		}
+
+		if(!is_dir($path)) {
+			throw new Exception("Unable to locate your Scarlet Directory at: $path", 1);
+		}
+
+		// Make sure its not the main Scarlet directory
+		if(file_exists($path.'/Scarlet.php')) {
+			throw new Exception("Found Scarlet.php in Scarlet Directory, this is the main Scarlet Library, please include Scarlet directory thats in your project ", 1);
+		}
+
+		$S = S();
+		// Define the specifics
+		$S->path('project', $path);
+		$S->path('attachments', $S->path('project').'/attachments');
+		$S->path('project_library', $S->path('project').'/library');
+		// Add the project library
+		$S->library($S->path('project_library'));
+		
+		$S->path('themes', $S->path('project').'/themes');
+		
+		return $this;
+	}
+	
 	public function location($namespace = null) {
 		return dirname($this->find($namespace));
 	}
@@ -269,18 +325,12 @@ class Scarlet
 }
 
 $S = S();
+
+// Define scarlet paths
 $S->path('scarlet', realpath(dirname(__FILE__)));
 $S->path('scarlet_library', $S->path('scarlet').'/library');
 
 // Load the default library
 $S->library($S->path('scarlet_library'));
-
-S()->path('attachments', dirname(__FILE__).'/View/Scarlet/attachments');
-echo S('form:text', array('hello!'));
-
-echo '<hr/><strong>$arr:</strong>';
-echo '<pre>';
-print_r(S()->getAssets('form:text'));
-echo '</pre><hr/>';
 
 ?>
