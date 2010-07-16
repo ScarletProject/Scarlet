@@ -9,6 +9,7 @@
 */
 
 require_once(dirname(__FILE__).'/../Scarlet.php');
+require_once(dirname(__FILE__).'/Attributes.php');
 
 class Template 
 {
@@ -41,17 +42,44 @@ class Template
 		S()->path('template', dirname($this->template));
 	}
 	
+	public function projectPath($path = null) {
+		if(!isset($path)) {
+			return S()->path('project');
+		}
+
+		$path = realpath($path);
+
+		if(basename($path) != 'Scarlet') {
+			if(is_dir($path.'/Scarlet')) {
+				$path .= '/Scarlet';
+			} else {
+				throw new Exception("Unable to locate your Scarlet Directory in: $path", 1);
+			}
+		}
+
+		if(!is_dir($path)) {
+			throw new Exception("Unable to locate your Scarlet Directory at: $path", 1);
+		}
+
+		// Make sure its not the main Scarlet directory
+		if(file_exists($path.'/Scarlet.php')) {
+			throw new Exception("Found Scarlet.php in Scarlet Directory, this is the main Scarlet Library, please include Scarlet directory thats in your project ", 1);
+		}
+
+		$S = S();
+		// Define the specifics
+		$S->path('project', $path);
+		$S->path('attachments', $S->path('project').'/attachments');
+		$S->path('project_library', $S->path('project').'/library');
+		$S->path('themes', $S->path('project').'/themes');
+		
+	}		
+	
 	public function compile() {
 
 		$content = $this->parse($this->template);
 
 		eval('?>' . $content );
-	}
-	
-	public function __tostring() {
-		$this->compile();
-		
-		return '';
 	}
 	
 	public function parse($template, $is_content = false) {
@@ -82,6 +110,13 @@ class Template
 			// Prepare the first function to kick parse_tokens off.
 			$function = array_shift($tokens);
 			$function = trim(substr($function,1));
+
+			// if($function == 'box') {
+			// 	echo '<hr/><strong>$tokens:</strong>';
+			// 	echo '<pre>';
+			// 	print_r($tokens);
+			// 	echo '</pre><hr/>';
+			// }
 
 			// Post-evaluation tags
 			if($function[0] == '&') {
@@ -315,11 +350,6 @@ class Template
 		return $content;
 	}
 	
-	public function projectPath($path) {
-		S()->projectPath($path);
-		
-		return $this;
-	}
 }
 
 
