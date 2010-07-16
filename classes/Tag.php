@@ -92,8 +92,8 @@ class Tag
 				self::$stylesheets[$sheet] = $sheet;
 				$this->used_stylesheets[$sheet] = $sheet;
 			} elseif(stristr($sheet, '/')) {
-				$sheet = basename($sheet);
 				$mapped_sheet = $this->_map($sheet);
+				$sheet = basename($sheet);
 				self::$stylesheets[$sheet] = $mapped_sheet;
 				$this->used_stylesheets[$sheet] = $mapped_sheet;
 			} else {
@@ -151,8 +151,8 @@ class Tag
 				self::$scripts[$script] = $script;
 				$this->used_scripts[$script] = $script;
 			} elseif(stristr($script, '/')) {
-				$script = basename($script);
 				$mapped_script = $this->_map($script);
+				$script = basename($script);
 				self::$scripts[$script] = $mapped_script;
 				$this->used_scripts[$script] = $mapped_script;
 			} else {
@@ -473,18 +473,20 @@ class Tag
 		$sheet_parts = explode('.', $sheet);
 		$suffix = end($sheet_parts);
 		
-		if(!($suffix == 'css' || $suffix == 'js')) {
-			throw new Exception("Give only works with JS and CSS files!", 1);
+		if(!($suffix == 'css')) {
+			throw new Exception("Give only works with CSS files right now!", 1);
 		}
 		
 		$file = $this->_map($sheet);
-		//	echo $sheet;
+
 		$content = file_get_contents($file);
 		
 		if(!is_array($mixed)) {
 			$mixed = array($mixed => $value);
 		}
 
+		$mixed['id'] = '#'.trim($this->id());
+		$mixed['class'] = str_replace(' ', '.', trim($this->attr('class')));
 		
 		foreach($mixed as $var => $value) {			
 			// Replace variables	
@@ -496,16 +498,21 @@ class Tag
 				$replace = $value;
 			}
 		
+
 			$content = preg_replace($pattern, $replace, $content);
-			$this->attach($sheet, $content, true);
 			
-			if($suffix == 'js') {
-				$this->script($this->attach($sheet));
-			} else {
-				$sheet = $this->attach($sheet);
-				$this->stylesheet($sheet);
-			}
 		}
+
+		$sheet = $this->id().'_'.$sheet;
+		$this->attach($sheet, $content, true);
+		
+		if($suffix == 'js') {
+			$this->script($this->attach($sheet));
+		} else {
+			$sheet = $this->attach($sheet);
+			$this->stylesheet($sheet);
+		}
+		
 		
 		return $this;
 	}
