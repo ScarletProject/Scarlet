@@ -13,18 +13,40 @@ if(!class_exists('Tag')) {
 * @author Matt Mueller
 */
 
-function S($ns_or_tpl = null, $args = array(), $library = null) {
+function S($selection = null, $args = array(), $library = null) {
 	$S = new Scarlet;
 
-	if(!isset($ns_or_tpl)) {
+	if(!isset($selection)) {
 		return $S;
 	}
 	
 	// Determine which way to route it.
-	if(strstr($ns_or_tpl, '.') !== false) {
-		return $S->initTemplate($ns_or_tpl);
+	if(strstr($selection, '<') !== false) {
+		preg_match('/<(?<open>[\w\s]+)(?<close>\/)?>([\w\s]+)?(<\/(?<close2>[\w\s]+)>)?/', $selection, $matches);
+		
+		if(isset($matches['open'])) {
+			$open = $matches['open'];
+		} else {
+			throw new Exception("Unable to parse: $selection", 1);
+		}
+		
+		if(isset($matches['close'])) {
+			$close = $matches['close'];
+		} elseif(isset($matches['close2'])) {
+			$close = $matches['close2'];
+		} else {
+			$close = $open;
+		}
+		
+		$tag = $S->initTag('HTMLElement', $args, $library);
+		$tag->wrap($open, $close);
+		
+		return $tag;
+	}
+	elseif(strstr($selection, '.') !== false) {
+		return $S->initTemplate($selection);
 	} else {
-		return $S->initTag($ns_or_tpl, $args, $library);
+		return $S->initTag($selection, $args, $library);
 	}
 }
 

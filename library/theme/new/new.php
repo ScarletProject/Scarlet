@@ -12,7 +12,7 @@ class Theme_New extends Tag
 {
 	
 	function init()
-	{
+	{		
 		$this->wrap('false');
 		
 		if(!S()->path('themes')) {
@@ -28,7 +28,6 @@ class Theme_New extends Tag
 		
 		$directory = S()->path('themes').'/'.$this->arg('name');
 
-		
 
 		foreach ($this->args() as $key => $tag) {
 			if(!is_numeric($key)) continue;
