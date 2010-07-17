@@ -228,11 +228,6 @@ class Template
 	}
 	
 	private function create($namespace, array $args = array()) {
-		if($namespace[0] == '/') {
-			$namespace = explode(':', substr($namespace,1));
-			$namespace[count($namespace)-1] = 'End'.$namespace[count($namespace)-1];
-			$namespace = implode(':',$namespace);
-		}
 
 		$Tag = S($namespace)->args($args);		
 

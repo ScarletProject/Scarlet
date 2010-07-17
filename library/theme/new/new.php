@@ -15,62 +15,27 @@ class Theme_New extends Tag
 	{
 		$this->wrap('false');
 		
-		if(!defined('SCARLET_PROJECT_THEME_DIR')) {
+		if(!S()->path('themes')) {
 			return;
 		}
 		
 		$this->defaults('name');
 
 		// Make theme'd directory
-		if(!is_dir(SCARLET_PROJECT_THEME_DIR.'/'.$this->arg('name'))) {
-			mkdir( SCARLET_PROJECT_THEME_DIR.'/'.$this->arg('name') );
+		if(!is_dir(S()->path('themes').'/'.$this->arg('name'))) {
+			mkdir( S()->path('themes').'/'.$this->arg('name') );
 		}
 		
-		$directory = SCARLET_PROJECT_THEME_DIR.'/'.$this->arg('name');
+		$directory = S()->path('themes').'/'.$this->arg('name');
 
-		$scripts_before = $this->script();
-		$stylesheets_before = $this->stylesheet();
-		$attachments_before = $this->attach();
+		
 
 		foreach ($this->args() as $key => $tag) {
 			if(!is_numeric($key)) continue;
 			
-			$this->_clear_scripts();
-			$this->_clear_stylesheets();
-			$this->_clear_attachments();
-
-			S($tag)->__tostring();
+			$assets = S()->getAssets($tag);
 			
-			// Get files in
-			$scripts = $this->script();
-			$stylesheets = $this->stylesheet();
-			$attachments = $this->attach();
-			
-			// echo Util::build($tag, $directory);
-						
-			$assets = Util::getAssets($tag);
-						
-			foreach ($assets['scripts'] as $script => $mapping) {
-				if(strstr($script, '.') === false) {
-					// Deal with me later
-				} elseif(strstr($script, 'Scarlet/attachments') !== false) {
-					// Not sure if this should be handled or not.
-				} else {
-					Util::place($script, $directory, $mapping);
-				}				
-			}
-			
-			foreach ($assets['stylesheets'] as $stylesheet => $mapping) {
-				if(strstr($stylesheet, '.') === false) {
-					// Deal with me later
-				} elseif(strstr($stylesheet, 'Scarlet/attachments') !== false) {
-					// Not sure if this should be handled or not.
-				}
-				else {
-					Util::place($stylesheet, $directory, $mapping);
-				}				
-			}
-
+			S()->copyAssets($assets, $directory);
 		}
 	}
 	
@@ -78,6 +43,42 @@ class Theme_New extends Tag
 	{
 		return '';
 	}
+}
+
+class Theme_EndNew extends Tag 
+{
+	function init()
+	{
+		$this->wrap('false');
+		
+		if(!S()->path('themes')) {
+			return;
+		}
+		
+		foreach ($this->args() as $name) {
+			if(is_dir(S()->path('themes').'/'.$name)) {
+				$this->rmdir(S()->path('themes').'/'.$name);
+			}
+		}
+	}
+	
+	function tostring()
+	{
+		return '';
+	}
+	
+	private function rmdir($dir) { 
+	   if (is_dir($dir)) { 
+	     $objects = scandir($dir); 
+	     foreach ($objects as $object) { 
+	       if ($object != "." && $object != "..") { 
+	         if (filetype($dir."/".$object) == "dir") $this->rmdir($dir."/".$object); else unlink($dir."/".$object); 
+	       } 
+	     } 
+	     reset($objects); 
+	     rmdir($dir); 
+	   } 
+	 }
 }
 
 

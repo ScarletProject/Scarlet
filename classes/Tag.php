@@ -465,7 +465,7 @@ class Tag
 	// }
 	// 
 	
-	public function give($sheet = null, $mixed = null, $value = null) {
+	public function give($sheet = null, $mixed = null, $value = null, $unique = false) {
 		if(!isset($sheet) || !isset($mixed)) {
 			return $this;
 		}
@@ -473,8 +473,8 @@ class Tag
 		$sheet_parts = explode('.', $sheet);
 		$suffix = end($sheet_parts);
 		
-		if(!($suffix == 'css')) {
-			throw new Exception("Give only works with CSS files right now!", 1);
+		if(!($suffix == 'css' || $suffix == 'js')) {
+			throw new Exception("Give only works with CSS or JS files right now!", 1);
 		}
 		
 		$file = $this->_map($sheet);
@@ -484,26 +484,47 @@ class Tag
 		if(!is_array($mixed)) {
 			$mixed = array($mixed => $value);
 		}
+		
+		// // Add id and class to the mix if added to script or css file
+		// if(!isset($mixed['id'])) {
+		// 	$mixed['id'] = '#'.trim(ltrim($this->id(), '#'));
+		// } elseif(!isset($mixed['class'])) {
+		// 	$mixed['class'] = str_replace(' ', '.', trim($this->attr('class')));
+		// }
+		// 
+		$pattern = '/\@\w+/';
+		preg_match_all($pattern, $content, $matches);
+		
+		$vars = array();
+		foreach ($matches[0] as $match) {
+			$vars[$match] = '';
+		}
+		
+		$vars = array_keys($vars);
 
-		$mixed['id'] = '#'.trim($this->id());
-		$mixed['class'] = str_replace(' ', '.', trim($this->attr('class')));
-		
-		foreach($mixed as $var => $value) {			
+		foreach($vars as $variable) {			
 			// Replace variables	
-			$pattern = '/\$'.$var.'/';
-		
+			$var = str_replace('@', '', $variable);
+			if(isset($mixed[$var])) {
+				$value = $mixed[$var];
+			} else {
+				$value = '';
+			}
+							
 			if($suffix == 'js') {
 				$replace = $this->_php_to_javascript_var($value);
 			} else {
 				$replace = $value;
 			}
-		
 
-			$content = preg_replace($pattern, $replace, $content);
-			
+			$content = str_replace($variable, $replace, $content);			
 		}
 
-		$sheet = $this->id().'_'.$sheet;
+		// Make sure the sheet is unique
+		if($unique) {
+			$sheet = $mixed['id'].'_'.$sheet;
+		}
+		
 		$this->attach($sheet, $content, true);
 		
 		if($suffix == 'js') {
@@ -679,7 +700,7 @@ class Tag
 						call_user_func(array('Attribute', $key), $value, $this);				
 					}
 				}
-				
+								
 				// Really late initialization, JIT - I hope!
 				$this->init();
 				$this->_initialized(true);
@@ -706,6 +727,11 @@ class Tag
 
 			// Wrap it right up
 			$out = $this->_wrapper($out);
+		
+			// Remove themed (temporary) library
+			if($this->arg('theme')) {
+				S()->removeLibrary(S()->path('themes').'/'.$this->arg('theme'));
+			}
 		
 		} catch(Exception $e) {  
 	        trigger_error($e->getMessage(), E_USER_ERROR);  
@@ -783,20 +809,9 @@ class Tag
 		}
 		elseif (strpos($assert,':') !== false) {
 			$path = S()->findAsset($assert);
-			// echo "<hr/>";
-			// 			$namespace = explode(':', $assert);
-			// 			$file = array_pop($namespace);
-			// 			$file = trim($file, ' /');
-			// 			$namespace = implode(':', $namespace);
-			// 			
-			// 			echo $namespace.':'.$file;echo "<br/>";
-			// 			exit(0);
-			// 			$location = dirname(S()->findAsset($namespace));
-			// 			$path = $location.'/'.$file;
 		} else {
-			$loc = realpath($this->location());
-			$main_dir = $loc;
-			$path = $main_dir.'/'.$assert;
+			$assert = $this->namespace.':'.$assert;
+			$path = S()->findAsset($assert);
 		}
 		
 		if(!file_exists($path)) {

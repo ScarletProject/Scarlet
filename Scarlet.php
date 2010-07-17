@@ -59,15 +59,17 @@ class Scarlet
 			$this->library($library);
 		}
 		
+
+		$this->namespace = $namespace;
+
+		// Load the class
+		$this->register();
+		
 		if($namespace[0] == '/') {
 			$namespace = explode(':', substr($namespace,1));
 			$namespace[count($namespace)-1] = 'End'.$namespace[count($namespace)-1];
 			$namespace = implode(':',$namespace);
 		}
-		$this->namespace = $namespace;
-		
-		// Load the class
-		$this->register();
 		
 		$class = str_replace(':','_',$namespace);
 		
@@ -82,6 +84,9 @@ class Scarlet
 		// Definitely necessary(!!) - $this's got mixed up for some reason
 		// Resulted in 3hr debug sesh... :'-(
 		$this->unregister();		
+
+		// Incase namespace changed because its an end tag
+		$this->namespace = $namespace;
 
 		return $this->initialized;
 	}
@@ -128,8 +133,7 @@ class Scarlet
 		$asloc = str_replace(':','/',$asset);
 
 		foreach (self::$libraries as $lib) {
-			$file = $lib.'/'.$asloc;
-			
+			$file = $lib.'/'.$asloc;			
 			if(file_exists($file)) {
 				return $file;
 			}
@@ -275,7 +279,29 @@ class Scarlet
 		$scripts = $tag->_used_scripts();
 		$stylesheets = $tag->_used_stylesheets();
 		
-		return array('scripts' => $scripts, 'stylesheets' => $stylesheets);
+		return array_merge($scripts, $stylesheets);
+	}
+	
+	public function copyAssets($assets = array(), $directory = null) {
+		if(empty($assets) || $directory == null) {
+			throw new Exception("Unable to copy assets - not all parameters satisfied", 1);
+		}
+		
+		foreach ($assets as $asset => $mapped) {
+			if(!file_exists($mapped) || strstr($mapped, '/attachments/') !== false) continue;
+			
+			$asset = str_replace(':','/',$asset);
+			
+			$file = $directory.'/'.$asset;
+			if(file_exists($file)) {
+				continue;
+			}
+			
+			$path = dirname($file);
+			$this->mkdir($path);
+			
+			copy($mapped, $file);
+		}
 	}
 		
 	private function register() {
@@ -290,7 +316,7 @@ class Scarlet
 	
 	private function loadClass() {
 		$file = S()->find($this->namespace);
-	
+
 		if(!$file) {
 			throw new Exception("Cannot load namespace: $this->namespace", 1);
 		} else {
