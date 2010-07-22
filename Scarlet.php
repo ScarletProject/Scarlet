@@ -61,6 +61,7 @@ class Scarlet
 	private $namespace;
 	private static $libraries = array();
 	private $initialized;
+	private $stage;
 	
 	private static $paths = array(
 		'scarlet' => '',
@@ -343,6 +344,21 @@ class Scarlet
 			throw new Exception("Cannot load namespace: $this->namespace", 1);
 		} else {
 			require_once($file);
+		}
+	}
+	
+	public function stage($stage = null) {
+		if(!isset($this->stage)) {
+			$this->stage = $stage;
+			return $this;
+		} elseif(!isset($stage)) {
+			return $this->stage;
+		} else {
+			if($stage == $this->stage) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 	
