@@ -45,6 +45,10 @@ class Attribute {
 			}
 		}
 	}
+	
+	public static function float($value, $Tag) {
+		$Tag->style('float', $value);
+	}
 }
 
 ?>
