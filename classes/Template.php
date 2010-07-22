@@ -48,18 +48,25 @@ class Template
 		eval('?>' . $content );
 	}
 	
-	public function __tostring() {
-		$this->compile();
-		
-		return '';
+	public function fetch() {
+		$content = $this->parse($this->template);
+		return $content;
 	}
 	
-	public function parse($template, $is_content = false) {
-		if($is_content) {
-			$content = $template;
-		} else {
-			$content = file_get_contents($template);
+	public function __tostring() {
+		return $this->fetch();
+	}
+	
+	public function parse($template = null, $content = false) {
+		if(!isset($template)) {
+			$template = $this->template;
 		}
+		if(!$content) {
+			$content = file_get_contents($template);
+		} else {
+			$content = $template;
+		}
+		
 		
 		$ignore = array(
 			"html" => array("<!--", "-->"),
