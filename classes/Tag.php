@@ -21,7 +21,8 @@ class Tag
 	private static 
 		$stylesheets = array(),
 		$scripts = array(),
-		$attachments = array()
+		$attachments = array(),
+		$given_variables = array()
 	;
 	
 	// Assets used for this specific tag
@@ -205,7 +206,7 @@ class Tag
 			}
 		} elseif(S()->path('attachments')) {
 			$path = S()->path('attachments');
-			if($write) {				
+			if($write) {
 				file_put_contents($path.'/'.$mixed, $value);
 			} else {
 				$value = $this->_map($value);
@@ -465,7 +466,7 @@ class Tag
 	// }
 	// 
 	
-	public function give($sheet = null, $mixed = null, $value = null, $unique = false) {
+	public function give($sheet = null, $mixed = null, $value = null) {
 		if(!isset($sheet) || !isset($mixed)) {
 			return $this;
 		}
@@ -492,6 +493,7 @@ class Tag
 		// 	$mixed['class'] = str_replace(' ', '.', trim($this->attr('class')));
 		// }
 		// 
+		
 		$pattern = '/\@\w+/';
 		preg_match_all($pattern, $content, $matches);
 		
@@ -501,14 +503,21 @@ class Tag
 		}
 		
 		$vars = array_keys($vars);
-
+		$has_at_element = false;
 		foreach($vars as $variable) {			
 			// Replace variables	
 			$var = str_replace('@', '', $variable);
 			if(isset($mixed[$var])) {
 				$value = $mixed[$var];
+			} elseif($var == 'element') {
+				// Replace me later when I know a little more
+				$has_at_element = true;
+				continue;
 			} else {
-				$value = '';
+				// All variables in asset should be accounted for..
+				// Tags should be middlemen and handle any undefined give variables
+				throw new Exception("Variable: $variable is not present in given variables", 1);
+				
 			}
 							
 			if($suffix == 'js') {
@@ -520,10 +529,36 @@ class Tag
 			$content = str_replace($variable, $replace, $content);			
 		}
 
-		// Make sure the sheet is unique
-		if($unique) {
-			$sheet = $mixed['id'].'_'.$sheet;
+		$sheet = explode('.', $sheet);
+		// Suffix already used - use $end instead.
+		$end = array_pop($sheet);
+		if(!($suid = $this->givenVariablesExist($file, $mixed))) {
+			$suid = 'sc'.$this->uid(4);
+			$end = '_'.$suid.'.'.$end;
+			$sheet = implode('.', $sheet);
+
+			self::$given_variables[$file][$suid] = $mixed;
+		} else {
+			
+			$end = '_'.$suid.'.'.$end;
+			$sheet = implode('.', $sheet);
 		}
+		$sheet .= $end;
+		
+		if($has_at_element) {
+			// Replace @element with suid, which will always be defined if specified in asset
+			$content = str_ireplace('@element', $suid, $content);
+
+			$this->addClass($suid);
+		}
+		
+		
+		// 
+		// if($unique) {
+		// 	$sheet = $mixed['id'].'_'.$sheet;
+		// }
+		// exit(0);
+		
 		
 		$this->attach($sheet, $content, true);
 		
@@ -538,6 +573,33 @@ class Tag
 		return $this;
 	}
 	
+	// Used to figure out if our attach needs to be unique
+	// Used helper because variable names were getting really messy.
+	private function givenVariablesExist($file, $variables) {
+		// If given variables unique, attach a unique sheet
+		if(isset(self::$given_variables[$file])) {
+			foreach(self::$given_variables[$file] as $present_id => $present_vars) {
+				$unique = false;
+				foreach($variables as $key => $value) {
+					if(!isset($present_vars[$key])) {
+						throw new Exception("This shouldn't happen", 1);
+					} elseif($value !== $present_vars[$key]) {
+						$unique = true;
+					}
+				}
+				
+				if(!$unique) {
+					return $present_id;
+				}
+			}
+			
+			return false;
+		} else {
+			self::$given_variables[$file] = array();
+			return false;
+		}
+	}
+	
 	public function id($id = null) {
 		if(isset($id)) {
 			$this->attr('id', $id);
@@ -546,13 +608,19 @@ class Tag
 			return $this->attr('id');
 		}
 				
-		$characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		$id = '';
-		for ($i = 0; $i < 6; $i++) {
-	 		$id .= $characters[mt_rand(0, strlen($characters)-1)];
-		}
+		$id = $this->uid();
 		
 		$this->attr('id', $id);
+		
+		return $id;
+	}
+	
+	private function uid($strlen = 6) {
+		$characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		$id = '';
+		for ($i = 0; $i < $strlen; $i++) {
+	 		$id .= $characters[mt_rand(0, strlen($characters)-1)];
+		}
 		
 		return $id;
 	}
@@ -862,8 +930,7 @@ class Tag
 	private function _php_to_javascript_var($val) {
 		$out = '';
 		if(is_string($val)) {
-			$val = addslashes($val);
-			$out .= '"'.$val.'"';
+			$out .= $val;
 		}
 		// Array args going to need to be recursive to be fully functional..
 		elseif(is_array($val)) {
