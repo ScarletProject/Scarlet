@@ -1,4 +1,4 @@
-@id.rounded {
+.@element.rounded {
   -moz-border-radius-bottomleft: @roundness;
   -webkit-border-bottom-left-radius: @roundness;
   -moz-border-radius-bottomright: @roundness;
@@ -9,7 +9,7 @@
   -webkit-border-top-right-radius: @roundness;
 }
 
-@id.rounded.top {
+.@element.rounded.top {
 	-moz-border-radius-bottomleft: 0px;
 	-webkit-border-bottom-left-radius: 0px;
 	-moz-border-radius-bottomright: 0px;
@@ -20,7 +20,7 @@
 	-webkit-border-top-right-radius: @roundness;
 }
 
-@id.rounded.bottom {
+.@element.rounded.bottom {
 	-moz-border-radius-bottomleft: @roundness;
 	-webkit-border-bottom-left-radius: @roundness;
 	-moz-border-radius-bottomright: @roundness;
@@ -32,7 +32,7 @@
 
 }
 
-@id.rounded.left {
+.@element.rounded.left {
   -moz-border-radius-topleft: @roundness;
   -webkit-border-top-left-radius: @roundness;
   -moz-border-radius-bottomleft: @roundness;
@@ -44,7 +44,7 @@
 
 }
 
-@id.rounded.right {
+.@element.rounded.right {
   -moz-border-radius-topright: @roundness;
   -webkit-border-top-right-radius: @roundness;
   -moz-border-radius-bottomright: @roundness;
@@ -55,22 +55,22 @@
   -webkit-border-bottom-left-radius: 0px;
 }
 
-@id.rounded.top.left {
+.@element.rounded.top.left {
   -moz-border-radius-bottomleft: 0px;
   -webkit-border-bottom-left-radius: 0px;
 }
 
-@id.rounded.bottom.left {
+.@element.rounded.bottom.left {
   -moz-border-radius-topleft: 0px;
   -webkit-border-top-left-radius: 0px;
 }
 
-@id.rounded.top.right {
+.@element.rounded.top.right {
   -moz-border-radius-bottomright: 0px;
   -webkit-border-bottom-right-radius: 0px;
 }
 
-@id.rounded.bottom.right {
+.@element.rounded.bottom.right {
   -moz-border-radius-topright: 0px;
   -webkit-border-top-right-radius: 0px;
 }

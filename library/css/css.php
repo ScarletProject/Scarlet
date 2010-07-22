@@ -63,9 +63,20 @@ class CSS extends Tag
 		$stylesheets = implode("\n\n /* -------------- */\n\n", $stylesheets);
 		// $scripts = str_replace(array("\n","\t"),"",$scripts);
 
-		$this->attach('scarlet.css', $stylesheets, true);
+		$uid = $this->id();
 
-		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet.css').'" type="text/css" media="screen" title="no title" charset="utf-8" />';
+		// Not perfect, but it will have to do for now.
+		// echo "<hr/>";
+		// echo "Random Number: ".rand(1,2000);echo "<br/>";
+		// echo 'scarlet_'.$uid.'.css';echo "<br/>";
+		// echo microtime(true);
+		// echo "<hr/>";
+		// 
+
+		
+		$this->attach('scarlet.css', $stylesheets, true);	
+
+		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet.css').'?'.microtime(true).'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
 		
 		return $out;
 	}

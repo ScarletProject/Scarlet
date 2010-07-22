@@ -8,24 +8,17 @@
 * @author Matt Mueller
 */
 
-class i 
+class i extends Tag
 {
 	
-	function __construct(Tag $T)
+	function init()
 	{
-		$args = $T->defaults('template');
-		extract($args, EXTR_OVERWRITE);
-		
-		if(end(explode('.', $template)) != 'tpl') {
-			$T->error('Not a .tpl file!', __CLASS__,__FUNCTION__,__LINE__);
-		} elseif(!file_exists($template)) {
-			$T->error('File doesn\'t exist! '.$template, __CLASS__,__FUNCTION__,__LINE__);
-		}
+		$args = $this->defaults('template');
+		$this->wrap(false);
 	}
 	
-	function __tostring(Tag $T) {
-		return $T->args('content');
-		
+	function tostring() {
+		return S($this->arg('template'))->fetch();
 	}
 }
 
