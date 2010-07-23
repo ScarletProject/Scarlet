@@ -440,8 +440,10 @@ class Tag
 						$this->arg($default, '');						
 					}
 				} else {
-					$this->arg($default, $this->arg($index));
-					$this->removeArg($index);
+					if(!array_key_exists($default, $this->arg())) {
+						$this->arg($default, $this->arg($index));
+						$this->removeArg($index);
+					}
 				}
 			}
 			
