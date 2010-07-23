@@ -1,9 +1,9 @@
-button.@element {
+button {
 	padding: 4px 10px;
 /*	-webkit-border-radius: 2px 2px;*/
 	border: solid 1px rgb(153, 153, 153);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(255, 255, 255)), to(rgb(221, 221, 221)));
-	color: @color;
+	color: #888888;
 	text-decoration: none;
 	cursor: pointer;
 	display: inline-block;
@@ -12,7 +12,8 @@ button.@element {
 	line-height: 1;
 	font-weight:bold;
 	font-size: 13px;
+	outline: none;
 }
 
 /* Remove the outline */
-button.@element::-moz-focus-inner { border: 0; }
+button::-moz-focus-inner { border: 0; }
