@@ -86,6 +86,7 @@ class Template
 			
 			$tokens = $this->tokenize($old);
 
+
 			// Prepare the first function to kick parse_tokens off.
 			$function = array_shift($tokens);
 			$function = trim(substr($function,1));
@@ -99,6 +100,8 @@ class Template
 			}
 
 			$Tag = $this->read($tokens, $function);
+
+
 			if(!method_exists($Tag, 'init')) {
 				throw new Exception('init method required for: '.$function, 1);
 			}
@@ -128,7 +131,8 @@ class Template
 		$string = '(?:[\'"]'.$oneChar.'*[\'"])';
 		$varName = '\\$(?:'.$oneChar.'[^ \\],}\n\t]*)';
 		$func = '(?:{[ \t\n]*'.$oneChar.'[^ \n\t}]*)';
-		$assoc = '(?:[\"\']?\w+[\"\']?[ ]*=)';
+		$assoc = '(?:[\"\']?[\w-.:]+[\"\']?[ ]*=)';
+		$attr = '(?:[\w\-.:]+)';
 		
 		$scarletToken = '@(?:false|true|null'
 		  .'|[\\}\\]\\[]'
@@ -137,6 +141,7 @@ class Template
 		  .'|'.$assoc	    
 	      .'|'.$number
 	      .'|'.$string
+		  .'|'.$attr
 	      .')@';		
 		
 		preg_match_all($scarletToken, $tag, $out);
@@ -149,9 +154,10 @@ class Template
 
 		for ($i = $offset; $i < count($tokens); $i++) { 
 			$tokens[$i] = trim($tokens[$i]);
-
+			
 			// Last character is =, then associative
 			if($tokens[$i][strlen($tokens[$i])-1] == '=') {
+
 				$key = substr($tokens[$i], 0, strlen($tokens[$i])-1);
 				$key = trim($key,'\'" ');
 
@@ -177,7 +183,15 @@ class Template
 					$args[$key] = $next_token;
 				}
 				elseif(is_string($next_token)) {
-					$args[$key] = trim($next_token,'\'"');
+					// Boolean tests
+					if($tokens[$i] == 'true') {
+						$args[$key] = true;
+					} elseif($tokens[$i] == 'false') {
+						$args[$key] = false;
+					} else {
+						// Otherwise its a string
+						$args[$key] = trim($next_token,'\'"');
+					}
 				}
 				else {
 					throw new Exception("Cannot parse tokens!", 1);
@@ -226,7 +240,19 @@ class Template
 				$args[] = $tokens[$i];
 			}
 			elseif(is_string($tokens[$i])) {
-				$args[] = trim($tokens[$i],' "\'');
+				if(preg_match('/[\'"]/', $tokens[$i])) {
+					// If its a string
+					$args[] = trim($tokens[$i], ' "\'');
+				} elseif($tokens[$i] == 'true') {
+					// Boolean tests
+					$args[] = true;
+				} elseif($tokens[$i] == 'false') {
+					$args[] = false;
+				} else {
+					// Otherwise its an attribute
+					$key = $tokens[$i];	
+					$args[$key] = true;
+				}
 			}
 			else {
 				throw new Exception("Cannot parse tokens!", 1);
