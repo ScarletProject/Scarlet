@@ -98,6 +98,10 @@ class CSS extends Tag
 			return true;
 		return false;
 	}
+	
+	private function reset() {
+		return $this->location().'/files/reset.css';
+	}
 }
 
 
