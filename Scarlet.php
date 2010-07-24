@@ -272,17 +272,30 @@ class Scarlet
 
 		// Make sure its not the main Scarlet directory
 		if(file_exists($path.'/Scarlet.php')) {
-			throw new Exception("Found Scarlet.php in Scarlet Directory, this is the main Scarlet Library, please include Scarlet directory thats in your project ", 1);
+			throw new Exception("Found Scarlet.php in Scarlet Directory, this is the main Scarlet Library, please include Scarlet directory that is in your project ", 1);
 		}
 
 		$S = S();
 		// Define the specifics
 		$S->path('project', $path);
+		
+		// Add attachments
+		if(!is_dir($S->path('project').'/attachments')) {
+			mkdir($S->path('project').'/attachments');
+		}
 		$S->path('attachments', $S->path('project').'/attachments');
+		
+		// Add project library
+		if(!is_dir($S->path('project').'/library')) {
+			mkdir($S->path('project').'/library');
+		}
 		$S->path('project_library', $S->path('project').'/library');
-		// Add the project library
 		$S->library($S->path('project_library'));
 		
+		// Add themes
+		if(!is_dir($S->path('project').'/themes')) {
+			mkdir($S->path('project').'/themes');
+		}
 		$S->path('themes', $S->path('project').'/themes');
 		
 		return $this;
