@@ -12,8 +12,9 @@ class Button extends Tag
 {
 	
 	function init() {
+
 		$this->defaults('value', 'click');
-		
+
 		// Generate a random color
 		// mt_srand((double)microtime()*1000000);
 		// 	    $c = '';
