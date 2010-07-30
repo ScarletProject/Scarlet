@@ -36,6 +36,10 @@ class Theme_New extends Tag
 			
 			S()->copyAssets($assets, $directory);
 		}
+		
+		if($this->arg('default')) {
+			S('theme:default')->arg('name', $this->arg('name'))->__tostring();
+		}
 	}
 	
 	function tostring()
