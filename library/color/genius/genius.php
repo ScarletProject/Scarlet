@@ -323,19 +323,20 @@ class Color_Genius extends Tag
 	}
 }
 
-$c1 = 'yellowgreen';
-$c2 = 'green';
+$c1 = 'darkred';
+$c2 = 'white';
 
 $genius = S('color:genius', array($c1));
 $genius->init();
-echo $genius->color('name');
 
 echo S('<div>')->height(300)->width(300)->style('background-color', $genius->color())->inner($genius->color('hsb'));
 
+$genius->more($c2, 20);
 echo S('<div>')->height(300)->width(300)->style('background-color', $genius->color())->inner($genius->color('hsb'));
 
 $genius = S('color:genius', array($c2));
 $genius->init();
+
 echo S('<div>')->height(300)->width(300)->style('background-color', $genius->color())->inner($genius->color('hsb'));
 
 
