@@ -5,8 +5,15 @@
 	exit(0);
 
 	function main() {
-		echo S('master.tpl')->projectPath('..');
+		$args = array();
+		$args['hello'] = "Viva la Vida";
+		$args['width'] = "120px";
 		
+		extract($args, EXTR_OVERWRITE);
+		
+		$content = S('master.tpl')->projectPath('..')->fetch();
+		
+		eval('?>'.$content);
 	}
 		
 	function error() {

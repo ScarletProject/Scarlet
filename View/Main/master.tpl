@@ -1,4 +1,6 @@
-{theme:new "scarlet", 'box'}
+{theme:new "scarlet", 'box' default}
+<!-- {theme:default "scarlet"} -->
+
 {doctype}
 <html>
 	<head>
@@ -8,11 +10,11 @@
 	</head>
 	<body>
 		<div id="wrapper">			
-			{box "New Project:" height = "300" width = "634" rounded = '5px' theme = "scarlet" id = "projectBox"}
+			{box "New Project:" height = "300" width = "634" id = "projectBox"}
 				{form:text "Project Name:" width = "600px"}
 				{form:text "Location:" width = "600px"}
 				{button "Create" float = "right" click = "createProject"}
-				{i "test.tpl"}
+				{button $hello, width = $width float='right'}
 			{/box}
 		</div>
 	</body>
