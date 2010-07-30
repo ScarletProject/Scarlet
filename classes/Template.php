@@ -21,7 +21,8 @@ class Template
 	;
 	
 	private 
-		$ignored_content
+		$ignored_content,
+		$include_scarlet = false
 	;
 	
 	function __construct($template) {
@@ -41,23 +42,34 @@ class Template
 		S()->path('template', dirname($this->template));
 	}
 	
-	public function compile() {
+	public function compile($out_file = null) {
+		if(!isset($out_file)) {
+			$out_file = explode('.',$this->template);
+			array_pop($out_file);
+			$out_file = implode('.', $out_file);
+			$out_file .= '.php';
+		}
 
-		$content = $this->parse($this->template);
+		$content = $this->fetch();
 
 		eval('?>' . $content );
 	}
 	
-	public function fetch() {
-		$content = $this->parse($this->template);
-		return $content;
+	public function fetch($content = null) {
+		if(isset($content)) {
+			$out = $this->parse($content, true);
+		} else {
+			$out = $this->parse($this->template);
+		}
+
+		return $out;
 	}
 	
 	public function __tostring() {
 		return $this->fetch();
 	}
 	
-	public function parse($template = null, $content = false) {
+	private function parse($template = null, $content = false) {
 		if(!isset($template)) {
 			$template = $this->template;
 		}
@@ -80,6 +92,10 @@ class Template
 
 		$tags = $this->pull($content);
 
+		// Allows for JS, css shortcut to be made
+		$found_css = false;
+		$found_js = false;
+
 		for ($i = 0; $i < count($tags); $i++) {
 			$tag = $tags[$i];
 			$old = '{'.$tag.'}';
@@ -93,12 +109,38 @@ class Template
 
 			// Post-evaluation tags
 			if($function[0] == '&') {
-				$new_tag = str_replace('&','',$tags[$i]);	
+				$new_tag = str_replace('&','',$tags[$i]);
+				
+				// Don't need to push to end twice.
+				// if(strcasecmp($new_tag, 'CSS') == 0) {
+				// 	$found_css = true;
+				// } elseif(strcasecmp($new_tag, 'Javascript') == 0) {
+				// 	$found_js = true;
+				// }
+					
 				$tags[] = $new_tag;
 				$content = $this->push($old, '{'.$new_tag.'}', $content);
 				continue;
+			} // elseif((strcasecmp($function, 'CSS') == 0) && !$found_css) {
+			// 				// Post-evaluate by default on CSS & Javascript
+			// 				$tags[] = $function;
+			// 				$found_css = true;
+			// 
+			// 				// $content = $this->push($old, '{'.$new_tag.'}', $content);
+			// 				continue;
+			// 			} elseif((strcasecmp($function, 'Javascript') == 0) && !$found_js) {
+			// 				$tags[] = $function;
+			// 				$found_js = true;
+			// 				// $content = $this->push($old, '{'.$new_tag.'}', $content);
+			// 				continue;
+			// 			}
+			
+			if($function[0] == '$') {
+				$final = '<?php echo '.$function.'; ?>';
+				$content = $this->push($old, $final, $content);
+				continue;
 			}
-
+			
 			$Tag = $this->read($tokens, $function);
 
 
@@ -108,11 +150,12 @@ class Template
 
 			$final = $Tag->__tostring();
 	
-			/*
-			if($Tag->has_runtime_args()) {
+			
+			if($Tag->_has_runtime_args()) {
+				$this->include_scarlet = true;
 				$final = '<?php echo '.$final.'; ?>';
 			}
-			*/
+			
 			
 			$content = $this->push($old, $final, $content);
 			
@@ -120,9 +163,26 @@ class Template
 		
 		$content = $this->showBlocks($content);
 
-		// echo htmlspecialchars($content);
-		// exit(0);
+		// Include Scarlet if there are runtime args
+		if($this->include_scarlet) {
+			$included = get_included_files();
+			$scarlet = array_filter($included, array($this, '_findScarlet'));
+			$scarlet = implode('', $scarlet);
+			
+			$php = '<?php require_once("'.$scarlet.'");';
+			$php .= 'S()->projectPath("'.S()->projectPath().'"); ?>';
+			$content = $php.$content;
+		}
+		
 		return $content;
+	}
+	
+	private function _findScarlet($file) {
+		if(strstr($file, 'Scarlet.php') !== false) {
+			return true;
+		}
+		else
+			return false;
 	}
 	
 	private function tokenize($tag) {

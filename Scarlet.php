@@ -401,13 +401,11 @@ class Scarlet
 	}
 }
 
-$S = S();
-
 // Define scarlet paths
-$S->path('scarlet', realpath(dirname(__FILE__)));
-$S->path('scarlet_library', $S->path('scarlet').'/library');
+S()->path('scarlet', realpath(dirname(__FILE__)));
+S()->path('scarlet_library', S()->path('scarlet').'/library');
 
 // Load the default library
-$S->library($S->path('scarlet_library'));
+S()->library(S()->path('scarlet_library'));
 
 ?>

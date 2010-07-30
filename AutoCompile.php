@@ -21,7 +21,7 @@ mkdir(dirname($template).'/.scarlet/');
 // Add directory as a path
 S()->path('attachments', dirname($template).'/.scarlet');
 
-$content = S($template)->parse($content, true);
+$content = S($template)->fetch($content);
 
 eval('?>'.$content);
 
