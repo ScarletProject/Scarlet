@@ -45,6 +45,8 @@ class Tag
 		$namespace
 	;
 
+	private $has_runtime_args;
+
 	private $initialized = false;
 	
 	private $extends;
@@ -535,7 +537,7 @@ class Tag
 		// Suffix already used - use $end instead.
 		$end = array_pop($sheet);
 		if(!($suid = $this->givenVariablesExist($file, $mixed))) {
-			$suid = 'sc'.$this->uid(4);
+			$suid = 's'.$this->uid(4);
 			$end = '_'.$suid.'.'.$end;
 			$sheet = implode('.', $sheet);
 
@@ -731,6 +733,42 @@ class Tag
 			return $this->initialized;
 		}
 	}
+	
+	public function _has_runtime_args() {
+		if(isset($this->has_runtime_args)) {
+			return $this->has_runtime_args;
+		}
+		
+		foreach ($this->arg() as $i => $arg) {
+			
+			if(is_array($arg)) {
+				$verdict = $this->has_runtime_args_helper($arg);
+				if($verdict) {
+					$this->has_runtime_args = true;
+					return true;
+				}
+			}
+			elseif($arg instanceof Tag) {
+				$verdict = $this->has_runtime_args_helper($arg->args());
+				if($verdict) {
+					$this->has_runtime_args = true;
+					return true;
+				}
+			}
+			elseif(is_string($arg)) {
+				if(isset($arg[0]) && $arg[0] == '$') {
+					$this->has_runtime_args = true;
+					return true;
+				} elseif(strpos($arg, 'S(') !== false) {
+					$this->has_runtime_args = true;
+					return true;
+				}
+			}
+		}
+		
+		$this->has_runtime_args = false;
+		return false;
+	}
 
 	public static function _clear_stylesheets() {
 		self::$stylesheets = array();
@@ -795,8 +833,13 @@ class Tag
 				$out = '';
 			}
 
-			// Wrap it right up
-			$out = $this->_wrapper($out);
+			if($this->_has_runtime_args()) {
+				// Re-map out to be called at runtime
+				$out = 'S("'.$this->namespace.'", '.$this->_format_runtime_args($this->arg()).')';
+			} else {
+				// Wrap it right up
+				$out = $this->_wrapper($out);
+			}
 		
 			// Remove themed (temporary) library
 			if($this->arg('theme')) {
@@ -805,7 +848,7 @@ class Tag
 		
 		} catch(Exception $e) {  
 	        trigger_error($e->getMessage(), E_USER_ERROR);  
-	        return '';  
+	        return ''; 
 	    }
 		
 		return $out;
@@ -949,6 +992,48 @@ class Tag
 			$this->error("Unable to convert PHP args to JS",__CLASS__,__FUNCTION__,__LINE__);
 
 		return $out;
+	}
+	
+	private function _format_runtime_args($args) {
+		$str_arr = array();
+		foreach ($args as $i => $arg) {
+			// If key is associative, add quotes
+			if(is_string($i)) {
+				$i = '"'.$i.'"';
+			}
+
+			if(is_array($arg)) {
+				$str_arr[] = $i.' => '.$this->format_runtime_args($arg);
+			}
+			elseif($arg instanceof Tag) {
+				$str_arr[] = $i.' => S("'.$arg->namespace.'",'.$arg->format_runtime_args($arg->args()).')';
+			}
+			elseif($arg[0] == '$') {
+				$str_arr[] = $i.' => '.$arg;
+			}
+			elseif(is_string($arg)) {
+				$pos = strpos($arg, '(');
+				$func = substr($arg,0,$pos);
+
+				if(is_callable($func)) {
+					$str_arr[] = $i.' => '.$arg;
+				}
+				else {
+					$str_arr[] = $i.' => '.'"'.$arg.'"';
+				}
+			}
+			elseif(is_numeric($arg)) {
+				$str_arr[] = $i.' => '.$arg;
+			}
+			elseif(is_bool($arg)) {
+				$str_arr[] = $i.' => '.$arg;
+			}
+
+		}
+
+		$str_args = implode(', ', $str_arr);
+		$str_args = 'array( '.$str_args.' )';
+		return $str_args;
 	}
 
 }
