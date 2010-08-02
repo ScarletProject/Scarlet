@@ -38,15 +38,15 @@ function S($selection = null, $args = array(), $library = null) {
 			$close = $open;
 		}
 		
-		$tag = $S->initTag('HTMLElement', $args, $library);
+		$tag = $S->_init_tag('HTMLElement', $args, $library);
 		$tag->wrap($open, $close);
 		
 		return $tag;
 	}
 	elseif(strstr($selection, '.') !== false) {
-		return $S->initTemplate($selection);
+		return $S->_init_template($selection);
 	} else {
-		return $S->initTag($selection, $args, $library);
+		return $S->_init_tag($selection, $args, $library);
 	}
 }
 
@@ -73,64 +73,6 @@ class Scarlet
 		'template' => ''
 	);
 
-	public function initTag($namespace, $args = array(), $library = null) {
-		if($namespace instanceof Tag) return $namespace;
-		if(isset($initialized)) return $this->initialized;
-		
-		
-		if(isset($library)) {
-			$this->library($library);
-		}
-		
-
-		$this->namespace = $namespace;
-
-		// Load the class
-		$this->register();
-		
-		if($namespace[0] == '/') {
-			$namespace = explode(':', substr($namespace,1));
-			$namespace[count($namespace)-1] = 'End'.$namespace[count($namespace)-1];
-			$namespace = implode(':',$namespace);
-		}
-		
-		$class = str_replace(':','_',$namespace);
-		
-		// Params to be sent to Tag
-		$tagParams = array();
-		$tagParams['namespace'] = $namespace;
-		$tagParams['args'] = $args;
-		
-		// Creating the tag
-		$this->initialized = new $class($tagParams);
-
-		// Definitely necessary(!!) - $this's got mixed up for some reason
-		// Resulted in 3hr debug sesh... :'-(
-		$this->unregister();		
-
-		// Incase namespace changed because its an end tag
-		$this->namespace = $namespace;
-
-		return $this->initialized;
-	}
-	
-	public function initTemplate($template) {
-		if(isset($this->initialized)) return $this->initialized;
-				
-		$suffix = end(explode('.', $template));
-		
-		if($suffix == 'tpl' || $suffix == 'php') {
-			if(!class_exists('Template')) {
-				require_once dirname(__FILE__).'/classes/Template.php';
-			}
-			$this->initialized = new Template($template);			
-		} else {
-			throw new Exception("Unable to initialize template: $template", 1);
-		}
-		
-		return $this->initialized;
-	}
-	
 	public function path($mixed = null, $value = null) {
 		if(!isset($mixed)) {
 			return self::$paths;
@@ -151,14 +93,21 @@ class Scarlet
 	
 	public function findAsset($asset) {
 		
-		$as = explode(':',$asset);
-		$filename = end($as);
-		$asloc = str_replace(':','/',$asset);
-
+		$namespace = explode(':',$asset);
+		$filename = array_pop($namespace);
+		$nsCount = count($namespace);
+		$namespace = implode(':', $namespace);
+		$loc = str_replace(':', '/', $namespace);
+	
 		foreach (self::$libraries as $lib) {
-			$file = $lib.'/'.$asloc;			
-			if(file_exists($file)) {
-				return $file;
+			$file = $lib.'/'.$loc;
+
+			if(file_exists($file.'/'.$filename)) {
+				$file = $file.'/'.$filename;
+				return realpath($file);
+			} elseif(file_exists($file.'/'.$loc.'/'.$filename)) {
+				$file = $file.'/'.$loc.'/'.$filename;
+				return realpath($file);
 			}
 		}
 		
@@ -166,11 +115,8 @@ class Scarlet
 		
 	}
 	
-	public function find($namespace = null) {
-		if(!isset($namespace)) {
-			throw new Exception("No namespace given for find!", 1);
-		}
-		
+	public function find($namespace) {
+
 		$ns = explode(':',$namespace);
 		$class = end($ns);
 		$nsloc = str_replace(':','/',$namespace);
@@ -338,6 +284,68 @@ class Scarlet
 			
 			copy($mapped, $file);
 		}
+	}
+
+	public function _init_tag($namespace, $args = array(), $library = null) {
+		if($namespace instanceof Tag) return $namespace;
+		if(isset($initialized)) return $this->initialized;
+		
+		
+		if(isset($library)) {
+			$this->library($library);
+		}
+		
+
+		$this->namespace = $namespace;
+
+		// Load the class
+		$this->register();
+		
+		if($namespace[0] == '/') {
+			$namespace = explode(':', substr($namespace,1));
+			$namespace[count($namespace)-1] = 'End'.$namespace[count($namespace)-1];
+			$namespace = implode(':',$namespace);
+		}
+		
+		$class = str_replace(':','_',$namespace);
+		
+		// Params to be sent to Tag
+		$tagParams = array();
+		$tagParams['namespace'] = $namespace;
+		$tagParams['args'] = $args;
+		
+		// Creating the tag
+		if(class_exists($class)) {
+			$this->initialized = new $class($tagParams);
+		} else {
+			throw new Exception("Cannot find class: $class", 1);
+		}
+
+		// Definitely necessary(!!) - $this's got mixed up for some reason
+		// Resulted in 3hr debug sesh... :'-(
+		$this->unregister();		
+
+		// Incase namespace changed because its an end tag
+		$this->namespace = $namespace;
+
+		return $this->initialized;
+	}
+	
+	public function _init_template($template) {
+		if(isset($this->initialized)) return $this->initialized;
+				
+		$suffix = end(explode('.', $template));
+		
+		if($suffix == 'tpl' || $suffix == 'php') {
+			if(!class_exists('Template')) {
+				require_once dirname(__FILE__).'/classes/Template.php';
+			}
+			$this->initialized = new Template($template);			
+		} else {
+			throw new Exception("Unable to initialize template: $template", 1);
+		}
+		
+		return $this->initialized;
 	}
 		
 	private function register() {
