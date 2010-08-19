@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<api>
+	<categories>
+		<category name = "Version">
+			<category name = "1.0" />
+		</category>
+	</categories>
+	<entries>

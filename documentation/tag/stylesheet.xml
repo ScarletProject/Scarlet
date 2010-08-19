@@ -1,0 +1,27 @@
+<entry type = "method" name = "stylesheet" return = "Tag">
+	<category name = "tag">
+	<category name = "author">
+	
+	<signature added = "1.0">
+		<argument name = "stylesheet" type = "stringset">
+			<desc>Takes one or more stylesheets to be placed in the compiled page</desc>
+		</argument>
+	</signature>
+	
+	<signature added = "1.0">
+		<argument name = "stylesheet" type = "array">
+			<desc>Takes an array of stylesheets to be added to final page</desc>
+		</argument>
+	</signature>
+	
+	<desc>Adds a stylesheet to be used in the compiled page</desc>
+	
+	<longdesc><p>
+		
+		
+	</p></longdesc>
+	
+</entry>
+
+<entry type = "method" name = "stylesheet" return = "Array">
+
