@@ -1,5 +1,7 @@
 <?php
 
+// error_reporting(E_ALL);
+
 // Require Tag
 if(!class_exists('Tag')) {
 	require_once dirname(__FILE__).'/classes/Tag.php';
@@ -12,6 +14,10 @@ if(!class_exists('Tag')) {
 * @package Scarlet
 * @author Matt Mueller
 */
+
+function Scarlet($selection = null, $args = array(), $library = null) {
+	return S($selection, $args, $library);
+}
 
 function S($selection = null, $args = array(), $library = null) {
 	$S = new Scarlet;
@@ -37,7 +43,7 @@ function S($selection = null, $args = array(), $library = null) {
 		} else {
 			$close = $open;
 		}
-		
+
 		$tag = $S->_init_tag('HTMLElement', $args, $library);
 		$tag->wrap($open, $close);
 		
@@ -61,7 +67,8 @@ class Scarlet
 	private $namespace;
 	private static $libraries = array();
 	private $initialized;
-	private $stage;
+	private static $stage;
+	private static $assignments = array();
 	
 	private static $paths = array(
 		'scarlet' => '',
@@ -72,6 +79,36 @@ class Scarlet
 		'themes' => '',
 		'template' => ''
 	);
+
+	public function parse($content = "") {
+		if(!$content) return "";
+		
+		if(!class_exists('Template')) {
+			require_once dirname(__FILE__).'/classes/Template.php';
+		}
+		
+		$t = new Template;
+		
+		return $t->fetch($content);
+	}
+
+	public function assign($mixed = null, $value = null) {
+		if(!isset($mixed)) {
+			return self::$assignments;
+		} elseif(is_array($mixed)) {			
+			foreach ($mixed as $key => $value) {					
+				self::$assignments[$key] = $value;
+			}
+			return $this;
+		} elseif(isset($value)) {
+			self::$assignments[$mixed] = $value;
+			return $this;
+		} elseif(isset($assignments[$mixed])) {
+			return self::$assignments[$mixed];
+		} else {
+			return '';
+		}
+	}
 
 	public function path($mixed = null, $value = null) {
 		if(!isset($mixed)) {
@@ -92,7 +129,6 @@ class Scarlet
 	}
 	
 	public function findAsset($asset) {
-		
 		$namespace = explode(':',$asset);
 		$filename = array_pop($namespace);
 		$nsCount = count($namespace);
@@ -107,6 +143,9 @@ class Scarlet
 				return realpath($file);
 			} elseif(file_exists($file.'/'.$loc.'/'.$filename)) {
 				$file = $file.'/'.$loc.'/'.$filename;
+				return realpath($file);
+			} elseif(file_exists(dirname($file).'/'.$filename)) {
+				$file = dirname($file).'/'.$filename;
 				return realpath($file);
 			}
 		}
@@ -196,11 +235,14 @@ class Scarlet
 		}
 		return $this;
 	}
-	
-	public function projectPath($path = null) {
-		if(!isset($path)) {
-			return S()->path('project');
-		}
+	/*		
+		init() - will default to init('.');
+		init(...path...) - will create Scarlet in the appropriate path.
+		
+		Better to just create the directory if their isn't one, if there is one, just
+		set things up and return Scarlet
+	*/
+	public function init($path = '.') {
 
 		$path = realpath($path);
 
@@ -208,12 +250,15 @@ class Scarlet
 			if(is_dir($path.'/Scarlet')) {
 				$path .= '/Scarlet';
 			} else {
-				throw new Exception("Unable to locate your Scarlet Directory in: $path", 1);
+				mkdir($path.'/Scarlet');
+				$path = $path.'/Scarlet';
+				// throw new Exception("Unable to locate your Scarlet Directory in: $path", 1);
 			}
 		}
 
 		if(!is_dir($path)) {
-			throw new Exception("Unable to locate your Scarlet Directory at: $path", 1);
+			mkdir($path);
+			// throw new Exception("Unable to locate your Scarlet Directory at: $path", 1);
 		}
 
 		// Make sure its not the main Scarlet directory
@@ -226,6 +271,7 @@ class Scarlet
 		$S->path('project', $path);
 		
 		// Add attachments
+		// exec('rm -r '.$S->path('project').'/attachments');
 		if(!is_dir($S->path('project').'/attachments')) {
 			mkdir($S->path('project').'/attachments');
 		}
@@ -243,6 +289,10 @@ class Scarlet
 			mkdir($S->path('project').'/themes');
 		}
 		$S->path('themes', $S->path('project').'/themes');
+		
+		// Compiled path
+		$S->path('compiled', $S->path('project').'/compiled');
+		
 		
 		return $this;
 	}
@@ -336,7 +386,7 @@ class Scarlet
 				
 		$suffix = end(explode('.', $template));
 		
-		if($suffix == 'tpl' || $suffix == 'php') {
+		if($suffix == 'tpl' || $suffix == 'php' || $suffix == 'html') {
 			if(!class_exists('Template')) {
 				require_once dirname(__FILE__).'/classes/Template.php';
 			}
@@ -369,13 +419,18 @@ class Scarlet
 	}
 	
 	public function stage($stage = null) {
-		if(!isset($this->stage)) {
-			$this->stage = $stage;
-			return $this;
+		if(!isset(self::$stage)) {
+			if(isset($stage)) {				
+				self::$stage = $stage;
+				return $this;
+			} else {
+				return false;
+			}
 		} elseif(!isset($stage)) {
-			return $this->stage;
+			return self::$stage;
 		} else {
-			if($stage == $this->stage) {
+			// echo $stage;echo "<br/>";echo $this->stage;
+			if(strcasecmp($stage , self::$stage) == 0) {
 				return true;
 			} else {
 				return false;
@@ -383,7 +438,7 @@ class Scarlet
 		}
 	}
 	
-	private function mkdir($path) {
+	public function mkdir($path) {
 		$path = trim($path);
 		$path = rtrim($path, '/');
 		$dirs = explode('/', $path);
