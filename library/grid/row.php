@@ -8,34 +8,19 @@
 * @author Matt Mueller
 */
 
-class Grid_Row 
+class Grid_Row extends Tag
 {
-	private $Tag;
-
-	function __construct(Tag $T)
+	function init()
 	{
-		$T->leftWrap();
-	}
-	
-	public function socialize(Tag $T) {
-
-	}
-	
-	function __tostring() {
-		return '';
+		$this->wrap(true, false);
 	}
 }
 
-class Grid_EndRow 
+class Grid_EndRow extends Tag
 {
-	
-	function __construct(Tag $T)
+	function init()
 	{
-		$T->rightWrap();
-	}
-	
-	function __tostring(Tag $T) {
-		return '';
+		$this->wrap(false, true);
 	}
 }
 

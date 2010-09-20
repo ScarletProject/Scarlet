@@ -7,40 +7,34 @@
 * @author Matt Mueller
 */
 
-class Grid 
+class Grid extends Tag
 {
 
-	function __construct(Tag $T)
+	function init()
 	{
-		$args = $T->defaults(
-			array('num_cols' => 12),
-			array('col_width' => 60),
-			array('gutter_width' => 20)
-		);
-		extract($args, EXTR_OVERWRITE);
+		$this->defaults('numCols = 12', 'colWidth = 70', 'gutterWidth = 20');
+		
+		$this->arg('numCols', rtrim($this->arg('numCols'), 'px'));
+		$this->arg('colWidth', rtrim($this->arg('colWidth'), 'px'));
+		$this->arg('gutterWidth', rtrim($this->arg('gutterWidth'), 'px'));
+				
+		extract($this->arg(), EXTR_OVERWRITE);
 		
 		@ob_clean();
 		ob_start();
 		include('grid.custom.php');
 		$customFile = ob_get_contents();
 		@ob_end_clean();
+
+		$this->attach('grid.css', $customFile, true);
+		$this->stylesheet($this->attach('grid.css'));
+		$this->wrap(true, false);
 		
-		// This might work.. its like a temporary playground before it gets copied
-		// to appropriate place.
-		file_put_contents(dirname(__FILE__).'/'.'grid.custom.css', $customFile);
-
-		$T->assert('grid.custom.css');
-		$T->leftWrap();
+		$this->data('grid-num-cols', $this->arg('num_cols'));
+		$this->data('grid-col-width', $this->arg('col_width'));
+		$this->data('grid-gutter-width', $this->arg('gutter_width'));
+		
 	}
-	
-	public function socialize(Tag $T) {
-
-	}
-
-	function __tostring(Tag $T) {
-		return '';
-	}
-
 	
 }
 
@@ -52,15 +46,11 @@ class Grid
 * @author Matt Mueller
 */
 
-class EndGrid 
+class EndGrid extends Tag
 {
-	function __construct(Tag $T)
+	function init()
 	{
-		$T->rightWrap();
-	}
-	
-	function __tostring(Tag $T) {
-		return '';
+		$this->wrap(false, true);
 	}
 }
 

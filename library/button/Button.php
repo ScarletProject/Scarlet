@@ -13,23 +13,36 @@ class Button extends Tag
 	
 	function init() {
 
-		$this->defaults('value', 'click');
-
-		// Generate a random color
-		// mt_srand((double)microtime()*1000000);
-		// 	    $c = '';
-		// 	    while(strlen($c)<6){
-		// 	        $c .= sprintf("%02X", mt_rand(0, 255));
-		// 	    }		
-		
-		// $this->give('button.css', 'color', '#'.$c);
-		$this->script('jquery');
+		$this->defaults('value = Button', 'link');
 		$this->stylesheet('button.css');
-		$this->give('button.js', array('click' => $this->arg('click'), 'hover' => $this->arg('hover')));
-		$this->give('css:rounded.css', 'roundness', '10px');
+
+		$this->attach('buttons.png', 'images/colors.png');
+		$this->give('button.css', 'url', $this->attach('buttons.png'));
+				
+		$this->wrap('a');
+		$this->attr('href', $this->arg('link'));
+		$this->addClass($this->arg('color'));
 		
-		$this->wrap('button');
-		$this->addClass('rounded');
+		// Handle rounded arguments
+		if($this->args('rounded')) {
+			$this->give('css:rounded/rounded.css', 'roundness', $this->args('rounded'));
+		}
+		
+		if($this->args('rounded-bottom')) {
+			$this->give('css:rounded/roundedBottom.css', 'roundness', $this->args('rounded-bottom'));
+		}
+		
+		if($this->args('rounded-top')) {
+			$this->give('css:rounded/roundedTop.css', 'roundness', $this->args('rounded-top'));
+		}
+		
+		if($this->args('rounded-left')) {
+			$this->give('css:rounded/roundedLeft.css', 'roundness', $this->args('rounded-left'));
+		}
+		
+		if($this->args('rounded-right')) {
+			$this->give('css:rounded/roundedRight.css', 'roundness', $this->args('rounded-right'));
+		}
 	}
 	
 	function tostring() {

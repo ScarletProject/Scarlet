@@ -1,0 +1,27 @@
+.scarlet-menu-horizontal {
+	margin: 0 0 10px 0;
+}
+
+.scarlet-menu-horizontal ul {
+	margin: 0;
+	padding:0;
+}
+
+.scarlet-menu-horizontal li {
+	text-align:	center;
+	float: left;
+	list-style:none;
+	padding: 5px 10px 2px 10px;
+	margin-right: 10px;
+	height: 20px;
+}
+
+
+.scarlet-menu-horizontal a {
+	color: #272727;
+	text-decoration:none;
+}
+
+.scarlet-menu-horizontal a:hover {
+	text-decoration:underline;
+}

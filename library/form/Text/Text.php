@@ -22,7 +22,7 @@ class Form_Text extends Tag
 		// Sets the default to be rounded with 6px
 		if(!$this->arg('rounded')) {
 			$this->addClass('rounded');
-			$this->give('css:rounded.css', 'roundness', '6px');
+			$this->give('css:rounded/rounded.css', 'roundness', '7px');			
 		}
 	}
 	

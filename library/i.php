@@ -13,12 +13,29 @@ class i extends Tag
 	
 	function init()
 	{
-		$args = $this->defaults('template');
-		$this->wrap(false);
+		$args = $this->defaults('file', 'wrap');
+		if($this->arg('wrap')) {
+			$this->wrap($this->arg('wrap'));
+		} else {
+			$this->wrap(false);
+		}
 	}
 	
 	function tostring() {
-		return S($this->arg('template'))->fetch();
+		$suffix = end(explode('.', $this->arg('file')));
+		switch ($suffix) {
+			case 'css':
+				$this->stylesheet('/'.getcwd().'/'.$this->arg('file'));
+				return '';
+				break;
+			case 'js':
+				$this->script('/'.getcwd().'/'.$this->arg('file'));
+				return '';
+				break;
+			default:
+				return S($this->arg('file'))->fetch();
+				break;
+		}		
 	}
 }
 

@@ -1,0 +1,6 @@
+.$element {
+	-moz-border-radius-bottomleft: $roundness;
+	-webkit-border-bottom-left-radius: $roundness;
+	-moz-border-radius-bottomright: $roundness;
+	-webkit-border-bottom-right-radius: $roundness;
+}

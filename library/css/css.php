@@ -16,22 +16,29 @@ class CSS extends Tag
 	private $dependency_path;
 	
 	function init() {
-		$this->wrap(false);
-		
-		// $this->defaults('stylesheets');
+		$this->wrap(false);		
 		
 		foreach ($this->arg() as $stylesheet) {
-			$this->stylesheets[] = $stylesheet;
+			$stylesheet = trim($stylesheet);
+			
+			if(is_dir($stylesheet)) {
+				$tmps = glob(rtrim($stylesheet,'/').'/*');
+				$stylesheets = array();
+				foreach ($tmps as $tmp) {
+					if(stristr($tmp, '.css') !== false) {
+						$stylesheets[] = $tmp;
+					}
+				}
+			} elseif(stristr($stylesheet, '.css') !== false 
+				|| strcmp($stylesheet, $this->map($stylesheet)) !== 0) 
+			{
+				$stylesheets = array($stylesheet);
+			} else {
+				continue;
+			}
+			
+			$this->stylesheets = array_merge($this->stylesheets, $stylesheets);
 		}
-		
-		// 
-		// foreach ($this->stylesheet() as $stylesheet) {
-		// 	if(is_array($stylesheet)) {
-		// 		$stylesheets = array_merge($stylesheets, $stylesheet);
-		// 	} else {
-		// 		$stylesheets[] = $stylesheet;
-		// 	}
-		// }
 		
 	}
 
@@ -76,12 +83,13 @@ class CSS extends Tag
 		
 		$this->attach('scarlet.css', $stylesheets, true);	
 
-		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet.css').'?'.microtime(true).'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
+		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet.css').'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
 		
 		return $out;
 	}
 	
 	public function map($stylesheet) {
+		$stylesheet = str_replace('-', '_', $stylesheet);
 		if($this->exists($stylesheet)) {
 			return $this->$stylesheet();
 		} else {
@@ -100,7 +108,15 @@ class CSS extends Tag
 	}
 	
 	private function reset() {
-		return $this->location().'/files/reset.css';
+		return $this->location().'/reset.css';
+	}
+	
+	private function rounded() {
+		return $this->location().'/rounded/rounded.css';
+	}
+	
+	private function rounded_bottom() {
+		return $this->location().'/rounded/rounded-bottom.css';
 	}
 }
 

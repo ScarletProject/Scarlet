@@ -1,13 +1,13 @@
-.form.text {
-  border: 1px solid #aaaaaa;
+.scarlet-form-text {
+  border: 1px solid #999999;
   padding: 3px 5px;
-  margin: 5px 0;
   background-color: #ffffff;
 }
-.form.text input {
+.scarlet-form-text input {
   border: none;
   font-family: "Lucida Grande", Helvetica, Arial, "MS Trebuchet", sans-serif;
   font-size: 12px;
   color: #cccccc;
   outline: none;
+  width: 100%;
 }

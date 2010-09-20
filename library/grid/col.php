@@ -8,29 +8,18 @@
 * @author Matt Mueller
 */
 
-class Grid_Col 
+class Grid_Col extends Tag
 {
 	
-	function __construct(Tag $T)
+	function init()
 	{
-		$args = $T->defaults(
-			array('col_width' => 12)
-		);
+		$this->defaults('column = 12');
 
-		extract($args, EXTR_OVERWRITE);
-
-		// $parts = explode('-', $col_width);
-		// $begin = $parts[0];
-		// $end = $parts[1];
-		// 
-		// // echo $begin;echo "<br/>";echo $end;echo "<br/>";
-		// 
-		// $span = $end - $begin + 1;
-		// 
-		$T->leftWrap();
+		$this->wrap(true, false);
+		$this->addClass('col-'.$this->arg('column'));
 		
-		// $T->style('background-color', 'lightgray');
-		$T->addClass('col_'.$col_width);
+		
+		// $this->style('background-color', 'lightgray');
 		
 		// if($T->prev()->is('Grid:Col')) {
 		// 	
@@ -41,28 +30,14 @@ class Grid_Col
 		// 	$T->prev($FillerCol.'&nbsp;'.$FillerColEnd);
 		// }
 	}
-	
-	function socialize(Tag $T) {
-		
-	}
-	
-	function __tostring()
-	{
-		return '';
-	}
+
 }
 
-class Grid_EndCol 
+class Grid_EndCol extends Tag
 {
-	
-	function __construct(Tag $T)
+	function init()
 	{
-		$T->rightWrap();
-	}
-	
-	function __tostring()
-	{
-		return '';
+		$this->wrap(false, true);
 	}
 }
 

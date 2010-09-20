@@ -10,15 +10,30 @@ class Javascript extends Tag {
 		
 		$this->wrap(false);
 		
-		$scripts = array();
-		
-		foreach ($this->args() as $script) {
-			if(is_array($script)) {
-				$this->scripts = array_merge($this->scripts, $script);
+		foreach ($this->arg() as $script) {
+			$script = trim($script);
+			
+			if(is_dir($script)) {
+				$tmps = glob(rtrim($script,'/').'/*');
+				$scripts = array();
+				foreach ($tmps as $tmp) {
+					if(stristr($tmp, '.js') !== false) {
+						$scripts[] = $tmp;
+					}
+				}
+			} elseif(
+				stristr($script, '.js') !== false 
+				|| strcmp($script, $this->map($script)) !== 0) {
+					$scripts = array($script);
 			} else {
-				$this->scripts[] = $script;
+				continue;
 			}
+			
+			$this->scripts = array_merge($this->scripts, $scripts);
 		}
+		
+		// print_r($this->scripts);
+		
 	}
 
 	public function tostring() {

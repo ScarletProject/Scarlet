@@ -8,31 +8,38 @@
 * @author Matt Mueller
 */
 
-class Namespace 
+class Namespace extends Tag
 {
 	
-	function __construct(Tag $T) {
-		$args = $T->defaults('namespace');
-		extract($args, EXTR_OVERWRITE);
-		
-		$T->add_namespace_to_cache($namespace);
+	function init() {
+		$this->defaults('namespace');
+		// S()->_add_to_namespace_cache($this->arg('namespace'));
+				// 
+				// $location = S()->location($this->arg('namespace'));
+				// echo $location;echo "<br/>";
+				// S()->library($location);
+				// print_r(S()->library());
+		// $T->add_namespace_to_cache($namespace);
 	}
 	
-	function __tostring(Tag $T) {
+	function tostring() {
 		return '';
 	}
 }
 
-class EndNamespace
+class EndNamespace extends Tag
 {
-	function __construct(Tag $T) {
-		$args = $T->defaults('namespace');
-		extract($args, EXTR_OVERWRITE);
+	function init() {
+		$this->defaults('namespace');
 				
-		$T->remove_namespace_from_cache($namespace);
+		try {
+			$location = S()->location($this->arg('namespace'));
+			S()->removeLibrary($location);
+		} catch (Exception $e) {  }
+		// $T->remove_namespace_from_cache($namespace);
 	}
 	
-	function __tostring(Tag $T) {
+	function tostring() {
 		return '';
 	}
 }

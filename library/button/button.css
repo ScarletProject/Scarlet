@@ -1,19 +1,43 @@
-button {
-	padding: 4px 10px;
-/*	-webkit-border-radius: 2px 2px;*/
-	border: solid 1px rgb(153, 153, 153);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(255, 255, 255)), to(rgb(221, 221, 221)));
-	color: #888888;
-	text-decoration: none;
-	cursor: pointer;
-	display: inline-block;
-	text-align: center;
-	text-shadow: 0px 1px 1px rgba(255,255,255,1);
-	line-height: 1;
-	font-weight:bold;
-	font-size: 13px;
-	outline: none;
+.scarlet-button {
+	padding: 5px 10px;
+	color: white;
+	border-style: solid;
+	border-width: 1px;
+	text-decoration:none;
+	font-family:"lucida grande",tahoma,verdana,arial,sans-serif;
+	font-size: 12px;
+	border-color: #7f7f7f #7f7f7f #636363;
+	background: #bfbfbf url('$url') repeat-x;
+	line-height: normal !important;
+	-moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+	-webkit-box-shadow: rgba(0, 0, 0, 0.046875) 0px 1px 0px;
 }
 
-/* Remove the outline */
-button::-moz-focus-inner { border: 0; }
+.scarlet-button:active {
+	background-image: none;
+	outline:none;
+}
+
+.scarlet-button.blue {
+	border-color: #29447E #29447E #1A356E;
+	background-color: #5B74A8;
+	background-position: 0 -48px;
+}
+
+.scarlet-button.green {
+	border-color: #3B6E22 #3B6E22 #2C5115;
+	background-color: #69A74E;
+	background-position: 0 -96px;
+}
+
+.scarlet-button.orange {
+	border-color: #7e4d29 #7e4d29 #513715;
+	background-color: #ba7b45;
+	background-position: 0 -144px;
+}
+
+.scarlet-button.red {
+	border-color: #6e2222 #6e2222 #511515;
+	background-color: #bc343f;
+	background-position: 0 -192px;
+}

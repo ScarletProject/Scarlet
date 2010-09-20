@@ -14,8 +14,6 @@ class Box extends Tag
 	function init()
 	{
 		$this->defaults('width', 'height');
-		
-		$this->addClass('box');
 		$this->stylesheet('box.css');
 		$this->wrap('div', false);
 		
@@ -28,10 +26,27 @@ class Box extends Tag
 			$this->height($this->args('height'));
 		}
 		
+		// Handle rounded arguments
 		if($this->args('rounded')) {
-			$this->addClass('rounded');
-			$this->give('css:rounded.css', 'roundness', $this->args('rounded'));
+			$this->give('css:rounded/rounded.css', 'roundness', $this->args('rounded'));
 		}
+		
+		if($this->args('rounded-bottom')) {
+			$this->give('css:rounded/roundedBottom.css', 'roundness', $this->args('rounded-bottom'));
+		}
+		
+		if($this->args('rounded-top')) {
+			$this->give('css:rounded/roundedTop.css', 'roundness', $this->args('rounded-top'));
+		}
+		
+		if($this->args('rounded-left')) {
+			$this->give('css:rounded/roundedLeft.css', 'roundness', $this->args('rounded-left'));
+		}
+		
+		if($this->args('rounded-right')) {
+			$this->give('css:rounded/roundedRight.css', 'roundness', $this->args('rounded-right'));
+		}
+		
 	}
 	
 	function tostring() {

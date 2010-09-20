@@ -14,9 +14,7 @@ class Box_Header extends Tag
 	function init()
 	{
 		$this->wrap('div');
-		$this->defaults(
-			array('header' => 'Text goes here')
-		);
+		$this->defaults('header = Text goes here')
 		
 		$box = S('box')->args($this->args());
 		
