@@ -25,13 +25,6 @@ if(file_exists($template)) {
 	$content = preg_replace($pattern, $replacement, $content);
 	
 	$contentMD5 = md5($content);
-	/*
-		TODO Allow unchanged files to be rendered from the Compiler.
-		
-		Turn uid to hash function - enough is enough, a random hash isn't working.
-		
-		We need something that is the same everytime, but unique.
-	*/
 	
 	if(isset($compiledFile) && $contentMD5 == $compiledMD5) {
 		S()->stage('live');
