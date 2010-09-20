@@ -1,29 +1,50 @@
-<?php header('Cache-Control: no-store, no-cache, must-revalidate');
-// Single include file and you can start writing Scarlet!!!
-require_once(dirname(__FILE__).'/classes/Template.php');
+<?php
 
-$content = file_get_contents($_SERVER['DOCUMENT_ROOT'].$_SERVER['PHP_SELF']);
-
-$pattern = '/<\?php([\d\D]*[require|include][\d\D]*AutoCompile.php[^;]*;)/i';
-$replacement = '<?php /* $1 */';
-$content = preg_replace($pattern, $replacement, $content);
-
+require_once(dirname(__FILE__).'/Scarlet.php');
 $template = $_SERVER['DOCUMENT_ROOT'].$_SERVER['PHP_SELF'];
 
-// Clean out directory 
-if(is_dir(dirname($template).'/.scarlet/')) {
-	exec('rm -r '.dirname($template).'/.scarlet/');
+if(file_exists($template)) {
+
+	S()->init(dirname($template))->stage('dev');
+	
+	$compiledFile;
+	$compiledMD5;
+	if(S($template)->isCompiled()) {
+		$compiledFile = S($template)->findCompiledFile();
+		$file = file_get_contents($compiledFile);
+		$compiledMD5 = md5($file);
+	}
+
+	$content = S($template)->fetch();
+
+
+	$file = basename(__FILE__);
+	$pattern = '/(?:require|include)(?:_once)?(?:[\s]+)?+[(]?(?:[\s]+)?[\'"][\w.\/]+Autocompile2.php[\'"](?:[\s]+)?[)]?(?:[\s]+)?;/i';
+	$replacement = '';
+	
+	$content = preg_replace($pattern, $replacement, $content);
+	
+	$contentMD5 = md5($content);
+	/*
+		TODO Allow unchanged files to be rendered from the Compiler.
+		
+		Turn uid to hash function - enough is enough, a random hash isn't working.
+		
+		We need something that is the same everytime, but unique.
+	*/
+	
+	if(isset($compiledFile) && $contentMD5 == $compiledMD5) {
+		S()->stage('live');
+		echo "<!-- Retrieved from compiled directory -->";
+		include_once $compiledFile;
+		exit(0);
+	} else {
+		eval('?>'.$content);
+		S($template)->compile($content);
+		exit(0);
+	}
+
 }
 
-// Make directory
-mkdir(dirname($template).'/.scarlet/');
 
-// Add directory as a path
-S()->path('attachments', dirname($template).'/.scarlet');
-
-$content = S($template)->fetch($content);
-
-eval('?>'.$content);
-
-exit(0);
 ?>
