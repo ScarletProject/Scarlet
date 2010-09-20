@@ -22,7 +22,8 @@ class Tag
 		$stylesheets = array(),
 		$scripts = array(),
 		$attachments = array(),
-		$given_variables = array()
+		$given_variables = array(),
+		$data = array()
 	;
 	
 	// Assets used for this specific tag
@@ -49,11 +50,11 @@ class Tag
 
 	private $initialized = false;
 	
-	private $extends;
 	
 	// To be implemented later! Used to prevent endless recursion
-	private static $extend_stack = array();
-	private static $become_stack = array();
+	// private $extends;
+	// private static $extend_stack = array();
+	// private static $become_stack = array();
 	////////////////////////////////////////////////////////
 	////////               Public API               ////////
 	////////////////////////////////////////////////////////
@@ -67,10 +68,12 @@ class Tag
 		
 		return $this;
 	}
-
+	
+/*
 	public function extend($namespace, $library = null) {
 		$this->extends = S($namespace, $library);
 	}
+*/
 
 	/*
 	public function become($namespace, $library = null) {
@@ -94,12 +97,17 @@ class Tag
 				// Defer responsibility to css tag - ie. rounded
 				self::$stylesheets[$sheet] = $sheet;
 				$this->used_stylesheets[$sheet] = $sheet;
-			} elseif(stristr($sheet, '/')) {
+			} elseif(stristr($sheet, '/') !== false) {
 				$mapped_sheet = $this->_map($sheet);
 				$sheet = basename($sheet);
 				self::$stylesheets[$sheet] = $mapped_sheet;
 				$this->used_stylesheets[$sheet] = $mapped_sheet;
-			} else {
+			} elseif(stristr($sheet, ':') !== false) {
+				$mapped_sheet = $this->_map($sheet);				
+				self::$stylesheets[$sheet] = $mapped_sheet;
+				$this->used_stylesheets[$sheet] = $mapped_sheet;
+			} 
+			else {
 				$mapped_sheet = $this->_map($sheet);
 				self::$stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
 				$this->used_stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
@@ -153,7 +161,12 @@ class Tag
 				// Defer responsibility to javascript tag - ie. jquery
 				self::$scripts[$script] = $script;
 				$this->used_scripts[$script] = $script;
-			} elseif(stristr($script, '/')) {
+			} elseif(stristr($script, ':') !== false) {
+				$mapped_script = $this->_map($script);				
+				self::$scripts[$script] = $mapped_script;
+				$this->used_scripts[$script] = $mapped_script;
+			}
+			elseif(stristr($script, '/')) {
 				$mapped_script = $this->_map($script);
 				$script = basename($script);
 				self::$scripts[$script] = $mapped_script;
@@ -197,7 +210,13 @@ class Tag
 		return $this;
 	}
 
+	// Alias to read only aspect of attach
+	public function attachment($mixed = null) {
+		return $this->attach($mixed);
+	}
+
 	public function attach($mixed = null, $value = null, $write = false) {
+		
 		if(!isset($mixed)) {
 			return self::$attachments;
 		} elseif(!isset($value)) {
@@ -208,11 +227,12 @@ class Tag
 			}
 		} elseif(S()->path('attachments')) {
 			$path = S()->path('attachments');
+			$file = basename($mixed);
 			if($write) {
-				file_put_contents($path.'/'.$mixed, $value);
+				file_put_contents($path.'/'.$file, $value);
 			} else {
 				$value = $this->_map($value);
-				copy($value, $path.'/'.$mixed);
+				copy($value, $path.'/'.$file);
 			}
 			
 			// Remove root stuff
@@ -222,9 +242,9 @@ class Tag
 			$path_arr = array_diff($path_arr, $root);
 			$path = implode('/', $path_arr);
 			$path = trim($path, ' /');
-			self::$attachments[$mixed] = '/'.$path.'/'.$mixed;
+			self::$attachments[$mixed] = '/'.$path.'/'.$file;
 		}
-
+		
 		return $this;
 	}
 
@@ -239,6 +259,24 @@ class Tag
 		}
 		
 		return $this;
+	}
+	
+	public function data($mixed = null, $value = null) {
+		if(!isset($mixed)) {
+			return $this->data;
+		} elseif(is_array($mixed)) {
+			foreach ($mixed as $key => $value) {
+				$this->data[$key] = $value;
+			}
+			return $this;
+		} elseif(isset($value)) {
+			$this->data[$mixed] = $value;
+			return $this;
+		} elseif(isset($this->data[$mixed])) {
+			return $this->data[$mixed];
+		} else {
+			return '';
+		}
 	}
 
 	public function attr($mixed = null, $value = null) {
@@ -345,9 +383,11 @@ class Tag
 		}
 		
 		if($left === true) {
-			$this->_leftWrap('div');
+			if($this->_leftWrap() == false || $this->_leftWrap() == 'div')
+				$this->_leftWrap('div');
 		} if($right === true) {
-			$this->_rightWrap('div');
+			if($this->_rightWrap() == false || $this->_rightWrap() == 'div')
+				$this->_rightWrap('div');
 		}
 		
 		if($left === false) {
@@ -416,40 +456,79 @@ class Tag
 		return $this;
 	}
 	
-	public function defaults() {
-		$defaults = func_get_args();
+	/*
+		TODO Fix issue when key is given, and overwrites defaults
 		
-		foreach ($defaults as $default) {
-			$index = null;
-			$i = 0;
-			foreach ($this->arg() as $i => $arg) {
-				if(is_numeric($i)) {
-					$index = $i;
-					break;
-				}
-			}
-						
-			if(is_array($default)) {
-				if(!isset($index)) {
-					$this->arg(key($default), current($default));
-				} else {
-					$this->arg(key($default), $this->arg($index));
-					$this->removeArg($index);
-				}
+		{grid num_cols = '36'}
+		
+		 -- with this in tag --
+		$this->defaults(array('num_cols' => 12))
+	*/
+	
+	public function defaults() {
+		$default_arr = func_get_args();
+		
+		$extras = array();
+		$defaults = array();
+		foreach ($default_arr as $i => $default) {
+			$default = explode('=', $default);
+			if(count($default) == 2) {
+				$key = rtrim($default[0]);
+				$value = ltrim($default[1]);
+			} elseif(count($default > 2)) {
+				$key = rtrim(array_shift($default));
+				$value = ltrim(implode('=', $default));
 			} else {
-				if(!isset($index)) {
-					if(!isset($arg)) {
-						$this->arg($default, '');						
-					}
-				} else {
-					if(!array_key_exists($default, $this->arg())) {
-						$this->arg($default, $this->arg($index));
-						$this->removeArg($index);
-					}
-				}
+				$key = implode('=',$default);
+				$value = false;
 			}
-			
+
+			$defaults[$key] = $value;
+
+			if(!$this->arg($key))
+				$extras[] = $key;
 		}
+
+		$this->arg(array_merge($defaults, $this->arg()));
+
+		for ($i=count($extras)-1; $i >= 0 ; $i--) {
+			if($this->arg($i))
+				$this->arg($extras[$i], $this->arg($i));
+				
+			$this->removeArg($i);
+		}
+
+		// foreach ($defaults as $default) {
+		// 			$index = null;
+		// 			$i = 0;
+		// 			foreach ($this->arg() as $i => $arg) {
+		// 				if(is_numeric($i)) {
+		// 					$index = $i;
+		// 					break;
+		// 				}
+		// 			}
+		// 						
+		// 			if(is_array($default)) {
+		// 				if(!isset($index)) {
+		// 					$this->arg(key($default), current($default));
+		// 				} else {
+		// 					$this->arg(key($default), $this->arg($index));
+		// 					$this->removeArg($index);
+		// 				}
+		// 			} else {
+		// 				if(!isset($index)) {
+		// 					if(!isset($arg)) {
+		// 						$this->arg($default, '');						
+		// 					}
+		// 				} else {
+		// 					if(!array_key_exists($default, $this->arg())) {
+		// 						$this->arg($default, $this->arg($index));
+		// 						$this->removeArg($index);
+		// 					}
+		// 				}
+		// 			}
+		// 			
+		// 		}
 		
 		return $this;
 	}
@@ -498,7 +577,7 @@ class Tag
 		// }
 		// 
 		
-		$pattern = '/\@\w+/';
+		$pattern = '/\$\w+/';
 		preg_match_all($pattern, $content, $matches);
 		
 		$vars = array();
@@ -510,7 +589,7 @@ class Tag
 		$has_at_element = false;
 		foreach($vars as $variable) {			
 			// Replace variables	
-			$var = str_replace('@', '', $variable);
+			$var = str_replace('$', '', $variable);
 			if(isset($mixed[$var])) {
 				$value = $mixed[$var];
 			} elseif($var == 'element') {
@@ -550,10 +629,18 @@ class Tag
 		$sheet .= $end;
 		
 		if($has_at_element) {
-			// Replace @element with suid, which will always be defined if specified in asset
-			$content = str_ireplace('@element', $suid, $content);
+			$final = array();
+			foreach($mixed as $key => $value) {
+				$final[] = $key.':'.$value;
+			}
+			$final = implode(';',$final);
+			$final = $file.'|'.$final;
+			$final = 's'.substr(md5($final), 0, 5);
 
-			$this->addClass($suid);
+			// Replace @element with md5, which will always be defined if specified in asset
+			$content = str_ireplace('$element', $final, $content);
+
+			$this->addClass($final);
 		}
 		
 		
@@ -562,7 +649,6 @@ class Tag
 		// 	$sheet = $mixed['id'].'_'.$sheet;
 		// }
 		// exit(0);
-		
 		
 		$this->attach($sheet, $content, true);
 		
@@ -742,14 +828,15 @@ class Tag
 		foreach ($this->arg() as $i => $arg) {
 			
 			if(is_array($arg)) {
-				$verdict = $this->has_runtime_args_helper($arg);
+				
+				$verdict = $this->_has_runtime_args_helper($arg);
 				if($verdict) {
 					$this->has_runtime_args = true;
 					return true;
 				}
 			}
 			elseif($arg instanceof Tag) {
-				$verdict = $this->has_runtime_args_helper($arg->args());
+				$verdict = $this->_has_runtime_args_helper($arg->args());
 				if($verdict) {
 					$this->has_runtime_args = true;
 					return true;
@@ -767,6 +854,35 @@ class Tag
 		}
 		
 		$this->has_runtime_args = false;
+		return false;
+	}
+	
+	private function _has_runtime_args_helper(array $args = array()) {
+		// Now check args
+		
+		foreach ($args as $i => $arg) {
+			
+			if(is_array($arg)) {
+				$verdict = $this->has_runtime_args_helper($arg);
+				if($verdict) {
+					return true;
+				}
+			}
+			elseif($arg instanceof Tag) {
+				$verdict = $this->has_runtime_args_helper($arg->args());
+				if($verdict) {
+					return true;
+				}
+			}
+			elseif(is_string($arg)) {
+				if($arg[0] == '$') {
+					return true;
+				} elseif(strpos($arg, 'S(') !== false) {
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
 
@@ -837,6 +953,15 @@ class Tag
 				// Re-map out to be called at runtime
 				$out = 'S("'.$this->namespace.'", '.$this->_format_runtime_args($this->arg()).')';
 			} else {
+				if($this->namespace == 'HTMLElement') {
+					$class = 'HTMLElement-'.$this->_leftWrap();
+				} else {
+					$class = str_replace(':', '-', $this->namespace);
+				}
+				$class = strtolower($class);
+				
+				$this->addClass('scarlet-'.$class);
+				
 				// Wrap it right up
 				$out = $this->_wrapper($out);
 			}
@@ -928,7 +1053,8 @@ class Tag
 		}
 		
 		if(!file_exists($path)) {
-			throw new Exception('Unable to map: '.$path.' to right location. ('.$namespace.')', 1);
+			echo $path;echo "<br/>";
+			throw new Exception('Unable to map: '.$path.' to right location. ('.$assert.')', 1);
 		}
 		
 		return $path;

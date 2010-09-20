@@ -20,17 +20,21 @@ class Template
 		$attachments = array()
 	;
 	
+	private static
+		$variables = array()
+	;
+	
 	private 
 		$ignored_content,
 		$include_scarlet = false
 	;
 	
-	function __construct($template) {
+	function __construct($template = null) {
 		// if(end(explode('.', $template)) != 'tpl') {
 		// 	throw new Exception("Not a .tpl file!", 1);
 		// }
 		if(!isset($template)) {
-			throw new Exception('Need to include a template');
+			return $this;
 		}
 		
 		if(!file_exists($template)) {
@@ -42,24 +46,59 @@ class Template
 		S()->path('template', dirname($this->template));
 	}
 	
-	public function compile($out_file = null) {
-		if(!isset($out_file)) {
-			$out_file = explode('.',$this->template);
-			array_pop($out_file);
-			$out_file = implode('.', $out_file);
-			$out_file .= '.php';
+	public function show() {
+		// If live, take the compiled version, otherwise compile, then eval()
+		
+		if(!isset($this->template)) {
+			throw new Exception(
+				"Unable to show: No template defined (example usage: S('main.tpl')->show(); )", 1);
 		}
+		
+		// Default to development..
+		if(!S()->stage()) {
+			S()->stage('development');
+		}
+		
+		$file = $this->findCompiledFile();
+		
+		// Turn the assigned variables into real variables - but obscure current scope variables first.
+		$scarlet_file = $file;
+		
+		// Get all assigned variables.
+		$assignments = S()->assign();
+		if(!empty($assignments)) {
+			extract($assignments, EXTR_OVERWRITE);
+		}
+		
+		if(S()->stage('live')) {
+			
+			// Compiling is expensive - do it once, when you switch over from development to live
+			if(!file_exists($scarlet_file)) {
+				$this->compile();
+			}
+			
+			if(!file_exists($scarlet_file)) {
+				throw new Exception("Not sure what happened: Unable to find compiled file at $scarlet_file", 1);
+			}
+			
+			// Include the file
+			include_once($scarlet_file);
+		} else {		
+			
+			$this->_clearCompiled();
+			$scarlet_content = $this->fetch();
 
-		$content = $this->fetch();
-
-		eval('?>' . $content );
+			eval('?>'.$scarlet_content);
+		}
 	}
 	
 	public function fetch($content = null) {
 		if(isset($content)) {
 			$out = $this->parse($content, true);
-		} else {
+		} elseif(isset($this->template)) {
 			$out = $this->parse($this->template);
+		} else {
+			throw new Exception("Unable to fetch: No template or content defined", 1);
 		}
 
 		return $out;
@@ -69,11 +108,90 @@ class Template
 		return $this->fetch();
 	}
 	
-	private function parse($template = null, $content = false) {
+	// Alias to Scarlet class made.
+	public function assign($name = null, $value = null) {
+		if(!isset($name) || !isset($value))
+			return $this;
+		else {
+			S()->assign($name, $value);
+		}
+		
+		return $this;
+	}
+	
+	private function _clearCompiled() {
+		if(is_dir(S()->path('compiled')) && S()->path('compiled')) {
+			exec('rm -r '.S()->path('compiled'));
+		}
+	}
+	
+	// Should place finished product in compiled folder
+	public function compile($content = null) {
+		
+		if(!S()->path('compiled')) {
+			throw new Exception("Cannot compile: Scarlet needs to be initialized first - to initialize run S()->init(...path-to-projects-scarlet-dir...)", 1);
+		}
+		
+		// Create the compiled directory
+		if(!is_dir(S()->path('compiled')))
+			mkdir(S()->path('compiled'));
+
+		if(isset($content)) {
+			$content = $this->fetch($content);
+		}
+		else {
+			$content = $this->fetch();
+		}
+		
+		// $header = '<!-- Compiled by Scarlet at '.date("g:ia").' on '.date('M j Y').' -->'."\n\n";
+		// $content = $header.$content;
+
+		$filepath = $this->findCompiledFile();
+
+		S()->mkdir(dirname($filepath));
+		
+		// echo S()->path('compiled').'/'.$file;exit(0);
+		file_put_contents($filepath, $content);
+	}
+	
+	public function isCompiled() {
+		if(!is_dir(S()->path('compiled'))) {
+			return false;
+		}
+		
+		if(file_exists($this->findCompiledFile())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function findCompiledFile() {
+		$file = explode('.', basename($this->template));
+		$suffix = array_pop($file);
+		
+		// Append $file.scarlet.php
+		array_push($file, 'scarlet', 'php');
+		$file = implode('.', $file);
+
+		// Find folder difference
+		$template = explode('/',dirname($this->template));
+		$project = explode('/', S()->path('project'));
+		// Pop off Scarlet directory
+		array_pop($project);
+		
+		// Resolve differences
+		$diff = array_diff($template, $project);
+		$diff = implode('/', $diff);
+		
+		return S()->path('compiled').'/'.$diff.'/'.$file;
+	}
+	
+	private function parse($template = null, $is_content = false) {
 		if(!isset($template)) {
 			$template = $this->template;
 		}
-		if(!$content) {
+		if(!$is_content) {
 			$content = file_get_contents($template);
 		} else {
 			$content = $template;
@@ -107,33 +225,22 @@ class Template
 			$function = array_shift($tokens);
 			$function = trim(substr($function,1));
 
+			// Helper functions
+			if(strcasecmp($function, 'CSS') == 0 && !$found_css) {
+				$function = '&'.$function;
+				$found_css = true;
+			} elseif(strcasecmp($function, 'javascript') == 0 && !$found_js) {
+				$function = '&'.$function;
+				$found_js = true;
+			}
+
 			// Post-evaluation tags
 			if($function[0] == '&') {
 				$new_tag = str_replace('&','',$tags[$i]);
-				
-				// Don't need to push to end twice.
-				// if(strcasecmp($new_tag, 'CSS') == 0) {
-				// 	$found_css = true;
-				// } elseif(strcasecmp($new_tag, 'Javascript') == 0) {
-				// 	$found_js = true;
-				// }
-					
 				$tags[] = $new_tag;
 				$content = $this->push($old, '{'.$new_tag.'}', $content);
 				continue;
-			} // elseif((strcasecmp($function, 'CSS') == 0) && !$found_css) {
-			// 				// Post-evaluate by default on CSS & Javascript
-			// 				$tags[] = $function;
-			// 				$found_css = true;
-			// 
-			// 				// $content = $this->push($old, '{'.$new_tag.'}', $content);
-			// 				continue;
-			// 			} elseif((strcasecmp($function, 'Javascript') == 0) && !$found_js) {
-			// 				$tags[] = $function;
-			// 				$found_js = true;
-			// 				// $content = $this->push($old, '{'.$new_tag.'}', $content);
-			// 				continue;
-			// 			}
+			}
 			
 			if($function[0] == '$') {
 				$final = '<?php echo '.$function.'; ?>';
@@ -170,7 +277,7 @@ class Template
 			$scarlet = implode('', $scarlet);
 			
 			$php = '<?php require_once("'.$scarlet.'");';
-			$php .= 'S()->projectPath("'.S()->projectPath().'"); ?>';
+			$php .= 'S()->init("'.S()->path('project').'"); ?>';
 			$content = $php.$content;
 		}
 		
@@ -402,12 +509,7 @@ class Template
 		
 		return $content;
 	}
-	
-	public function projectPath($path) {
-		S()->projectPath($path);
-		
-		return $this;
-	}
+
 }
 
 
