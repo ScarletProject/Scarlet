@@ -24,11 +24,11 @@ class Attribute {
 		$Tag->id($value);
 	}
 	
-	public static function rounded($value, $Tag) {
-		$Tag->addClass('rounded');
-		$Tag->give('css:rounded.css', 'roundness', $value);
-	}
-	
+	// public static function rounded($value, $Tag) {
+	// 	$Tag->addClass('rounded');
+	// 	$Tag->give('css:rounded.css', 'roundness', $value);
+	// }
+	// 
 	public static function width($value, $Tag) {
 		$Tag->width($value);
 	}
@@ -48,6 +48,7 @@ class Attribute {
 	
 	public static function float($value, $Tag) {
 		$Tag->style('float', $value);
+		$Tag->style('display', 'inline');
 	}
 }
 
