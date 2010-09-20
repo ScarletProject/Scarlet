@@ -1,0 +1,3 @@
+Scarlet is a modern front-end language for designers and developers with big ambitions but little time. Syntactically similar to HTML, Scarlet contains a rich set of UI tags to plug into your web application that compile into native HTML, Javascript, and CSS. The Scarlet API provides an easy way to create your own tags and leverage existing API's around the web. With a single include, you will feel the power and elegance of Scarlet.
+
+Simply include AutoCompile.php and go! If you're using an MVC framework consider looking into the Scarlet API - S('master.tpl')->show(), lends itself nicely this framework.
