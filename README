@@ -2,4 +2,4 @@ Scarlet is a modern front-end language for designers and developers with big amb
 
 Simply include AutoCompile.php and go! If you're using an MVC framework consider looking into the Scarlet API - S('master.tpl')->show(), lends itself nicely this framework.
 
-Documentation and website coming soon!
+Documentation, test suite and website coming soon!
