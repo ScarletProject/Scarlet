@@ -1,1 +1,0 @@
-{button "Hello World!" float = "right" click="createProject"}

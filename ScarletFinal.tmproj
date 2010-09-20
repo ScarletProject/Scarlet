@@ -595,20 +595,6 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>tests/classes/TagTestCase.php</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>28</integer>
-				<key>line</key>
-				<integer>1</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
 		<key>tests/tools/LibraryCreator.php</key>
 		<dict>
 			<key>caret</key>
@@ -664,7 +650,6 @@
 		<string>examples/index.php</string>
 		<string>library/slideshow/slideshow/basic.css</string>
 		<string>library/javascript.php</string>
-		<string>tests/classes/TagTestCase.php</string>
 		<string>library/i.php</string>
 		<string>library/cufon/cufon.php</string>
 		<string>library/box/box/box.php</string>

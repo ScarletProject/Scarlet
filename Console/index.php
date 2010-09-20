@@ -5,18 +5,16 @@
 	exit(0);
 
 	function main() {
-		$content = S('main.tpl')->projectPath('.')->fetch();
-		
-		eval("?>".$content);
+		S()->init('.');
+		S('main.tpl')->show();
 	}
 		
 	function render() {
 		$text = $_POST['text'];
 		$text = stripslashes($text);
-		S()->projectPath('.');
 		
 		try {
-			$content = S('main.tpl')->parse($text, true);
+			$content = S()->parse($text);
 			
 			$out = array();
 			$out['content'] = $content;
@@ -27,6 +25,7 @@
 			$scripts = S('<div>')->script();
 			$scripts = array_keys($scripts);
 			$out['assets'] = implode(" ", array_merge($stylesheets, $scripts));
+			$out['assets'] = array();
 			
 			echo json_encode($out);
 			

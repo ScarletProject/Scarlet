@@ -1,8 +1,0 @@
-#blah {
-	color: green;
-}
-
-.main {
-	background-color: $color;
-	$border : $border_small;
-}
