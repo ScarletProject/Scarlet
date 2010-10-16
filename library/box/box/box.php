@@ -11,7 +11,7 @@
 class Box extends Tag 
 {
 	
-	function init()
+	function setup()
 	{
 		$this->defaults('width', 'height');
 		$this->stylesheet('box.css');
@@ -49,7 +49,7 @@ class Box extends Tag
 		
 	}
 	
-	function tostring() {
+	function show() {
 		$out = '';
 		// if ($this->args('header')) {
 		// 	$out = '<div class = "header ';
@@ -75,11 +75,11 @@ class Box extends Tag
 
 class EndBox extends Tag 
 {
-	function init() {
+	function setup() {
 		$this->wrap(false, 'div');
 	}
 	
-	function tostring() {
+	function show() {
 		return '';
 	}
 }

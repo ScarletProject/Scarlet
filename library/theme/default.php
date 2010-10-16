@@ -11,7 +11,7 @@
 class Theme_Default extends Tag
 {
 	
-	public function init()
+	public function setup()
 	{
 		$this->defaults('name');
 		$directory = S()->path('themes').'/'.$this->arg('name');
@@ -21,7 +21,7 @@ class Theme_Default extends Tag
 		}
 	}
 	
-	public function tostring()
+	public function show()
 	{
 		return '';
 	}
@@ -30,7 +30,7 @@ class Theme_Default extends Tag
 class Theme_EndDefault extends Tag
 {
 	
-	public function init()
+	public function setup()
 	{
 		$this->defaults('name');
 		$directory = S()->path('themes').'/'.$this->arg('name');
@@ -40,7 +40,7 @@ class Theme_EndDefault extends Tag
 		}
 	}
 	
-	public function tostring()
+	public function show()
 	{
 		return '';
 	}

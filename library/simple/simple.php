@@ -11,11 +11,11 @@
 class Simple extends Tag 
 {
 	
-	function init() {
+	function setup() {
 		$this->wrap(false);
 	}
 	
-	function tostring() {
+	function show() {
 		return '';
 	}
 }

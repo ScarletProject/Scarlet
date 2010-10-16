@@ -5,7 +5,7 @@
 	without reducing modularity
 */
 
-$('input','.scarlet-form-text').live('focus', function() {
+$('.scarlet-form-text').live('focus', function() {
 	if(!$(this).data('name'))
 		$(this).data('name', $(this).val());
 		
@@ -15,7 +15,7 @@ $('input','.scarlet-form-text').live('focus', function() {
 	}
 });
 
-$('input','.scarlet-form-text').live('blur', function() {
+$('.scarlet-form-text').live('blur', function() {
 	if(!$(this).data('name'))
 		$(this).data('name', $(this).val());
 	

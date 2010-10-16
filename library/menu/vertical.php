@@ -11,13 +11,13 @@
 class Menu_Vertical extends Tag 
 {
 	
-	public function init()
+	public function setup()
 	{
 		$this->wrap(true, false);
 		$this->stylesheet('vertical.css');
 	}
 	
-	public function tostring()
+	public function show()
 	{
 		return S('<ul>')->wrap(true, false);
 	}
@@ -26,12 +26,12 @@ class Menu_Vertical extends Tag
 class Menu_EndVertical extends Tag 
 {
 	
-	public function init()
+	public function setup()
 	{
 		$this->wrap(false, true);
 	}
 	
-	public function tostring()
+	public function show()
 	{
 		return S('<ul>')->wrap(false, true);
 	}

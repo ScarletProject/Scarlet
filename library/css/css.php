@@ -15,7 +15,7 @@ class CSS extends Tag
 	private $Tag;
 	private $dependency_path;
 	
-	function init() {
+	function setup() {
 		$this->wrap(false);		
 		
 		foreach ($this->arg() as $stylesheet) {
@@ -42,7 +42,7 @@ class CSS extends Tag
 		
 	}
 
-	public function tostring() {
+	public function show() {
 		$stylesheets = array_merge($this->stylesheet(), $this->stylesheets);
 		$stylesheets = array_unique($stylesheets);
 		

@@ -12,11 +12,12 @@ class HTMLElement extends Tag
 {
 	private $inner = '';
 	
-	public function init() {
-		// Silence is POWER.
+	public function setup() {
+		// $this->removeAttr('class');
+		$this->removeClass('scarlet-htmlelement');
 	}
 	
-	public function tostring() {
+	public function show() {
 		return $this->inner;
 	}
 	

@@ -10,7 +10,7 @@
 class Img extends Tag
 {
 
-	public function init() {
+	public function setup() {
 		// Tag::__construct($init);
 		$this->defaults('src', 'caption');
 		
@@ -20,7 +20,7 @@ class Img extends Tag
 		$this->wrap('img', '/');
 	}
 	
-	public function tostring() {
+	public function show() {
 		return '';
 	}
 	

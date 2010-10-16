@@ -16,7 +16,7 @@ $(document).ready( function(){
         $('.checkbox',parent).attr('checked', false);
 		if(h) {
 			h = false;
-			$('#preview').text($('#preview').html()).wrap('<pre>');
+			$('#preview').text($('#preview').html().replace(/<br>/g,"\n")).wrap('<pre>');
 		}
     });
 });

@@ -10,7 +10,7 @@
 
 class Grid_Row extends Tag
 {
-	function init()
+	function setup()
 	{
 		$this->wrap(true, false);
 	}
@@ -18,7 +18,7 @@ class Grid_Row extends Tag
 
 class Grid_EndRow extends Tag
 {
-	function init()
+	function setup()
 	{
 		$this->wrap(false, true);
 	}

@@ -1,4 +1,4 @@
-*.DS_Store
-*scarlet.js
-*attachments/
+.DS_Store
+scarlet.js
+attachments/
 test-library*

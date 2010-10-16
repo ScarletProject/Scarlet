@@ -1,1 +1,3 @@
-$('.slideshow').cycle();
+$('.scarlet-slideshow').cycle();
+
+

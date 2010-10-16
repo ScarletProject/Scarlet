@@ -11,7 +11,7 @@
 class Box_Rounded extends Tag
 {
 	
-	function init()
+	function setup()
 	{
 		$this->extend('box');
 		
@@ -21,7 +21,7 @@ class Box_Rounded extends Tag
 		$this->give('rounded.css', 'roundness', $this->args('rounded'));
 	}
 	
-	function tostring() {
+	function show() {
 		'';
 	}
 }

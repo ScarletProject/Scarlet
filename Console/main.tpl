@@ -4,6 +4,9 @@
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 		<title>Console</title>
 		{&CSS 'reset', 'css/console.css', 'css/switcher.css'}
+
+		<link rel="stylesheet" href="css/switcher.css" type="text/css" media="screen" title="no title" charset="utf-8">
+		
 	</head>
 	<body>
 	<div id="wrapper">

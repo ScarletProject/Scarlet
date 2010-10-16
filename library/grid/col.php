@@ -11,12 +11,12 @@
 class Grid_Col extends Tag
 {
 	
-	function init()
+	function setup()
 	{
-		$this->defaults('column = 12');
+		$this->defaults('length = 12');
 
 		$this->wrap(true, false);
-		$this->addClass('col-'.$this->arg('column'));
+		$this->addClass('col-'.$this->arg('length'));
 		
 		
 		// $this->style('background-color', 'lightgray');
@@ -35,7 +35,7 @@ class Grid_Col extends Tag
 
 class Grid_EndCol extends Tag
 {
-	function init()
+	function setup()
 	{
 		$this->wrap(false, true);
 	}

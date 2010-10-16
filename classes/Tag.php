@@ -23,7 +23,8 @@ class Tag
 		$scripts = array(),
 		$attachments = array(),
 		$given_variables = array(),
-		$data = array()
+		$data = array(),
+		$uids = array()
 	;
 	
 	// Assets used for this specific tag
@@ -60,7 +61,6 @@ class Tag
 	////////////////////////////////////////////////////////
 	
 	public function __construct(array $init) {
-
 		$this->namespace = $init['namespace'];	
 		$this->file = $this->find($this->namespace);
 		
@@ -615,40 +615,25 @@ class Tag
 		$sheet = explode('.', $sheet);
 		// Suffix already used - use $end instead.
 		$end = array_pop($sheet);
-		if(!($suid = $this->givenVariablesExist($file, $mixed))) {
-			$suid = 's'.$this->uid(4);
-			$end = '_'.$suid.'.'.$end;
-			$sheet = implode('.', $sheet);
-
-			self::$given_variables[$file][$suid] = $mixed;
-		} else {
-			
-			$end = '_'.$suid.'.'.$end;
-			$sheet = implode('.', $sheet);
+		
+		$message = array();
+		foreach($mixed as $key => $value) {
+			$message[] = $key.':'.$value;
 		}
-		$sheet .= $end;
+		$message = implode(';',$message);
+		$message = $file.'|'.$message;
+		
+		$suid = 's'.$this->uid($message, 4);
+		
 		
 		if($has_at_element) {
-			$final = array();
-			foreach($mixed as $key => $value) {
-				$final[] = $key.':'.$value;
-			}
-			$final = implode(';',$final);
-			$final = $file.'|'.$final;
-			$final = 's'.substr(md5($final), 0, 5);
-
-			// Replace @element with md5, which will always be defined if specified in asset
-			$content = str_ireplace('$element', $final, $content);
-
-			$this->addClass($final);
+			$content = str_ireplace('$element', $suid, $content);
+			$this->addClass($suid);
 		}
+
 		
-		
-		// 
-		// if($unique) {
-		// 	$sheet = $mixed['id'].'_'.$sheet;
-		// }
-		// exit(0);
+		$sheet = implode('.', $sheet);
+		$sheet = $sheet.'_'.$suid.'.'.$end;
 		
 		$this->attach($sheet, $content, true);
 		
@@ -697,20 +682,32 @@ class Tag
 		} elseif($this->attr('id')) {
 			return $this->attr('id');
 		}
-				
-		$id = $this->uid();
+		
+		$args = $this->arg();
+		$message = $this->namespace.' '.implode(',',$args);
+		$id = $this->uid($message);
+
+		// Perhaps useful at some point...
+		// $count = 0;
+		// while(isset(self::$uids[$id])) {
+		// 	$md5 = md5($message.$count);
+		// 	$id = substr($md5, 0, $strlen);
+		// 	$count++;
+		// }
+		// 
+		// self::$uids[$id] = true;
 		
 		$this->attr('id', $id);
 		
 		return $id;
 	}
 	
-	private function uid($strlen = 6) {
-		$characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		$id = '';
-		for ($i = 0; $i < $strlen; $i++) {
-	 		$id .= $characters[mt_rand(0, strlen($characters)-1)];
-		}
+	private function uid($message, $strlen = 6) {
+				
+		$md5 = md5($message);
+		$id = substr($md5, 0, $strlen);
+		
+
 		
 		return $id;
 	}
@@ -743,9 +740,13 @@ class Tag
 		return $this;
 	}
 	
+	// public function show() {
+	// 	echo 'ookokz';
+	// 	return $this->_render();
+	// }
+	
 	public function __tostring() {
 		$out = $this->_render();
-		
 		return $out;
 	}
 	
@@ -902,13 +903,12 @@ class Tag
 	////////            Private Functions           ////////
 	////////////////////////////////////////////////////////
 	private function _render() {
+		
 		try {
 			// If not already initialized.
 			if(!$this->_initialized()) {
 			    
-				if(!method_exists($this, 'init')) {
-					throw new Exception("init() method required!", 1);
-				}
+
 				
 				// Add all the normal attributes
 				foreach ($this->arg() as $key => $value) {
@@ -924,9 +924,17 @@ class Tag
 						call_user_func(array('Attribute', $key), $value, $this);				
 					}
 				}
-								
+				
+				// Add scarlet class
+				$class = str_replace(':', '-', $this->namespace);
+				$class = strtolower($class);
+				$this->addClass('scarlet-'.$class);
+					
 				// Really late initialization, JIT - I hope!
-				$this->init();
+				if(!method_exists($this, 'setup')) {
+					throw new Exception("setup() method required!", 1);
+				}
+				$this->setup();
 				$this->_initialized(true);
 		
 				/*
@@ -941,27 +949,21 @@ class Tag
 				$this->_extender();
 			}
 			
-		
+		// 	S($this->namespace);
+		// exit(0);
 			// Get the string representation of the tag
-			if(method_exists($this, 'tostring')) {
-				$out = (string) $this->tostring();
+			
+			if(method_exists($this, 'show')) {
+				$out = $this->show();
 			} else {
 				$out = '';
 			}
+			// exit(0);
 
 			if($this->_has_runtime_args()) {
 				// Re-map out to be called at runtime
 				$out = 'S("'.$this->namespace.'", '.$this->_format_runtime_args($this->arg()).')';
 			} else {
-				if($this->namespace == 'HTMLElement') {
-					$class = 'HTMLElement-'.$this->_leftWrap();
-				} else {
-					$class = str_replace(':', '-', $this->namespace);
-				}
-				$class = strtolower($class);
-				
-				$this->addClass('scarlet-'.$class);
-				
 				// Wrap it right up
 				$out = $this->_wrapper($out);
 			}

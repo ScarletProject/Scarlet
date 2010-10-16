@@ -6,7 +6,7 @@
 class Javascript extends Tag {
 	private $scripts = array();
 	
-	public function init() {
+	public function setup() {
 		
 		$this->wrap(false);
 		
@@ -36,7 +36,7 @@ class Javascript extends Tag {
 		
 	}
 
-	public function tostring() {
+	public function show() {
 		$scripts = array();
 
 		$scripts = array_merge($this->script(), $this->scripts);
@@ -159,20 +159,6 @@ class Javascript extends Tag {
 		
 		if(true) {
 			$json = '/Javascript/json.js';
-		}
-		else {
-			// Google location
-			$json = '';
-		}
-	
-		return $json;
-	}
-	
-	private function cycle() {
-		$this->assert('jquery');
-
-		if(true) {
-			$json = '/Javascript/cycle.js';
 		}
 		else {
 			// Google location

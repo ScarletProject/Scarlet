@@ -11,7 +11,7 @@
 class Theme_New extends Tag
 {
 	
-	function init()
+	function setup()
 	{		
 		$this->wrap('false');
 		
@@ -38,11 +38,11 @@ class Theme_New extends Tag
 		}
 		
 		if($this->arg('default')) {
-			S('theme:default')->arg('name', $this->arg('name'))->__tostring();
+			S('theme:default')->arg('name', $this->arg('name'))->show();
 		}
 	}
 	
-	function tostring()
+	function show()
 	{
 		return '';
 	}
@@ -50,7 +50,7 @@ class Theme_New extends Tag
 
 class Theme_EndNew extends Tag 
 {
-	function init()
+	function setup()
 	{
 		$this->wrap('false');
 		
@@ -65,7 +65,7 @@ class Theme_EndNew extends Tag
 		}
 	}
 	
-	function tostring()
+	function show()
 	{
 		return '';
 	}

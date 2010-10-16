@@ -1,0 +1,13 @@
+.scarlet-form-file {
+	position:relative;
+}
+
+.scarlet-form-file input {
+	height: 24px;
+}
+
+.scarlet-form-file a {
+	position:absolute;
+	right:6px;
+	top: 4px;
+}

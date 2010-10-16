@@ -8,32 +8,34 @@
 * @author Matt Mueller
 */
 
-class Slideshow extends Tag
+class slideshow extends Tag
 {
 
-	function init() {
+	function setup() {
 		
 		$this->defaults('slides');
 		
-		$this->addClass('slideshow');
 		// Assert requirements
-		$this->script('jquery', 'cycle', 'basic.js');
+		$this->script('jquery', 'cycle.js', 'basic.js');
 		
 		$this->wrap();
 		$this->style('border', '1px solid #555');
 	}
 	
 
-	public function tostring() {
+	public function show() {
 		$out = '';		
 		
 		// Build slideshow layout
 		foreach ($this->args('slides') as $i => $slide) {
-
+			$img = S('<img>')->attr(array(
+				'src' => $slide
+			));
+			
 			if($i > 0) {
-				$slide->style('display', 'none');
+				$img->style('display', 'none');
 			}
-			$out .= $slide;
+			$out .= $img;
 		}
 
 		

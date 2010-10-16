@@ -48,7 +48,7 @@ class Search_Live
 		
 	}
 	
-	public function __tostring() {
+	public function show() {
 		$out = new Tag('Form:Text', array($this->value, $this->width));
 		$out .= '<div class="results"></div>';
 		return $out;

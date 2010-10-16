@@ -11,13 +11,13 @@
 class Menu_Element extends Tag 
 {
 	
-	function init()
+	function setup()
 	{
 		$this->defaults('title', 'link');
 		$this->wrap('li');
 	}
 	
-	function tostring()
+	function show()
 	{
 		return S('<a>')->attr('href', $this->arg('link'))->inner($this->arg('title'));
 	}

@@ -11,7 +11,7 @@
 class i extends Tag
 {
 	
-	function init()
+	function setup()
 	{
 		$args = $this->defaults('file', 'wrap');
 		if($this->arg('wrap')) {
@@ -21,7 +21,7 @@ class i extends Tag
 		}
 	}
 	
-	function tostring() {
+	function show() {
 		$suffix = end(explode('.', $this->arg('file')));
 		switch ($suffix) {
 			case 'css':

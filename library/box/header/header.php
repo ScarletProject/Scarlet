@@ -11,7 +11,7 @@
 class Box_Header extends Tag
 {
 	
-	function init()
+	function setup()
 	{
 		$this->wrap('div');
 		$this->defaults('header = Text goes here')
@@ -29,7 +29,7 @@ class Box_Header extends Tag
 		
 	}
 	
-	function tostring()
+	function show()
 	{
 		return $this->arg('header');
 	}
@@ -46,7 +46,7 @@ class Box_Header extends Tag
 class Box_EndHeader extends Tag
 {
 	
-	function init()
+	function setup()
 	{
 		$this->wrap(false);
 		
@@ -54,7 +54,7 @@ class Box_EndHeader extends Tag
 		$this->after($endbox);
 	}
 	
-	function tostring()
+	function show()
 	{
 		return '';
 	}

@@ -17,7 +17,7 @@ class Color_Genius extends Tag
 	private $colors = array();
 	private $color_name = '';
 	
-	function init() {
+	function setup() {
 		$this->defaults('color');
 		$this->colors = $this->_set_initial_colors();
 		
@@ -327,7 +327,7 @@ $c1 = 'darkred';
 $c2 = 'white';
 
 $genius = S('color:genius', array($c1));
-$genius->init();
+$genius->setup();
 
 echo S('<div>')->height(300)->width(300)->style('background-color', $genius->color())->inner($genius->color('hsb'));
 
@@ -335,7 +335,7 @@ $genius->more($c2, 20);
 echo S('<div>')->height(300)->width(300)->style('background-color', $genius->color())->inner($genius->color('hsb'));
 
 $genius = S('color:genius', array($c2));
-$genius->init();
+$genius->setup();
 
 echo S('<div>')->height(300)->width(300)->style('background-color', $genius->color())->inner($genius->color('hsb'));
 

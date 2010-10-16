@@ -11,13 +11,18 @@
 class Form_Text extends Tag
 {
 
-	public function init() {
+	public function setup() {
 		
-		$this->defaults('value', 'maxlength');
-				
+		$this->defaults('label');
+		$this->wrap('input', '/');
+		
 		$this->stylesheet('text.css')->script('jquery', 'text.js');
+				
+		if($this->arg('maxlength')) {
+			$this->attr('maxlength', $this->arg('maxlength'));
+		}
 		
-		$this->addClass('form', 'text');
+		$this->attr('value', $this->arg('label'));
 		
 		// Sets the default to be rounded with 6px
 		if(!$this->arg('rounded')) {
@@ -26,13 +31,8 @@ class Form_Text extends Tag
 		}
 	}
 	
-	public function tostring() {
-		$out = S('<input />')->attr(array(
-			'value' => $this->arg('value'),
-			'maxlength' => $this->arg('maxlength')
-		))->width($this->arg('width'));
-
-		return $out;
+	public function show() {
+		return '';
 	}
 }
 

@@ -251,10 +251,6 @@ class Template
 			$Tag = $this->read($tokens, $function);
 
 
-			if(!method_exists($Tag, 'init')) {
-				throw new Exception('init method required for: '.$function, 1);
-			}
-
 			$final = $Tag->__tostring();
 	
 			

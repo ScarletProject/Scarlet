@@ -11,9 +11,9 @@
 class Button extends Tag
 {
 	
-	function init() {
+	function setup() {
 
-		$this->defaults('value = Button', 'link');
+		$this->defaults('value = Button', 'link = #');
 		$this->stylesheet('button.css');
 
 		$this->attach('buttons.png', 'images/colors.png');
@@ -24,7 +24,9 @@ class Button extends Tag
 		$this->addClass($this->arg('color'));
 		
 		// Handle rounded arguments
-		if($this->args('rounded')) {
+		if($this->args('rounded') === true) {
+			$this->give('css:rounded/rounded.css', 'roundness', '5px');
+		} else if($this->args('rounded')) {
 			$this->give('css:rounded/rounded.css', 'roundness', $this->args('rounded'));
 		}
 		
@@ -45,7 +47,7 @@ class Button extends Tag
 		}
 	}
 	
-	function tostring() {
+	function show() {
 		return $this->arg('value');
 	}
 }

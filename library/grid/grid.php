@@ -10,15 +10,20 @@
 class Grid extends Tag
 {
 
-	function init()
+	function setup()
 	{
-		$this->defaults('numCols = 12', 'colWidth = 70', 'gutterWidth = 20');
-		
-		$this->arg('numCols', rtrim($this->arg('numCols'), 'px'));
-		$this->arg('colWidth', rtrim($this->arg('colWidth'), 'px'));
-		$this->arg('gutterWidth', rtrim($this->arg('gutterWidth'), 'px'));
-				
+		$this->defaults('width = 960','numCols = 12', 'gutterWidth = 20');
 		extract($this->arg(), EXTR_OVERWRITE);
+		
+		if(!isset($colWidth)) {
+			$colWidth = round(($width - $numCols*$gutterWidth) / $numCols);
+		}
+		
+		$this->arg('numCols', rtrim($numCols, 'px'));
+		$this->arg('colWidth', rtrim($colWidth, 'px'));
+		$this->arg('gutterWidth', rtrim($gutterWidth, 'px'));
+		
+		extract($this->arg(), EXTR_OVERWRITE);		
 		
 		@ob_clean();
 		ob_start();
@@ -30,9 +35,9 @@ class Grid extends Tag
 		$this->stylesheet($this->attach('grid.css'));
 		$this->wrap(true, false);
 		
-		$this->data('grid-num-cols', $this->arg('num_cols'));
-		$this->data('grid-col-width', $this->arg('col_width'));
-		$this->data('grid-gutter-width', $this->arg('gutter_width'));
+		$this->data('grid-numCols', $numCols);
+		$this->data('grid-colWidth', $colWidth);
+		$this->data('grid-gutterWidth', $gutterWidth);
 		
 	}
 	
@@ -48,7 +53,7 @@ class Grid extends Tag
 
 class EndGrid extends Tag
 {
-	function init()
+	function setup()
 	{
 		$this->wrap(false, true);
 	}

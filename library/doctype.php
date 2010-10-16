@@ -11,17 +11,16 @@
 class Doctype extends Tag
 {
 	
-	function init() {
+	function setup() {
 		
 		$this->defaults('type');
 				
 		$this->wrap(false);
 	}
 	
-	function tostring()
+	function show()
 	{
 		$out = '';
-			
 		switch ($this->arg('type')) {
 			case 'strict':
 				$out = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"

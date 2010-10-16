@@ -11,7 +11,7 @@
 class Namespace extends Tag
 {
 	
-	function init() {
+	function setup() {
 		$this->defaults('namespace');
 		// S()->_add_to_namespace_cache($this->arg('namespace'));
 				// 
@@ -22,14 +22,14 @@ class Namespace extends Tag
 		// $T->add_namespace_to_cache($namespace);
 	}
 	
-	function tostring() {
+	function show() {
 		return '';
 	}
 }
 
 class EndNamespace extends Tag
 {
-	function init() {
+	function setup() {
 		$this->defaults('namespace');
 				
 		try {
@@ -39,7 +39,7 @@ class EndNamespace extends Tag
 		// $T->remove_namespace_from_cache($namespace);
 	}
 	
-	function tostring() {
+	function show() {
 		return '';
 	}
 }
