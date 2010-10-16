@@ -303,7 +303,7 @@ class Scarlet
 	
 	public function getAssets($namespace = null, $args = array()) {
 		if(!isset($namespace)) {
-			return array();
+			return array_merge(S('<div>')->script(), S('<div>')->stylesheet());
 		}
 		
 		$tag = S($namespace)->arg($args);
