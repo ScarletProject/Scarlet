@@ -48,17 +48,9 @@ class Javascript extends Tag {
 			return '';
 		}
 
-		
-		// $scriptVars = Tag::_script_vars();
 		foreach($scripts as $i => $script) {
-			$vars = array();
-			// Gets the path of scripts like 'jquery'
-			if(isset($scriptVars[$script])) {
-				$vars = $scriptVars[$script];
-			}
-			
 			$script = $this->map($script);
-
+			
 			if(file_exists($script)) {				
 				$scripts[$i] = file_get_contents($script);
 			} 
@@ -67,21 +59,6 @@ class Javascript extends Tag {
 			}
 			else {
 				throw new Exception('Unable to retrieve script: '.$script, 1);
-			}
-			
-			// Add the closure
-			if(!empty($vars)) {
-
-				$keys = array_keys($vars);
-				foreach ($keys as $j => $key) {
-					if(is_numeric($key)) {
-						$keys[$j] = 'arg'.$key;
-					}
-				}
-				$keys = implode(', ', $keys);
-				$vars = implode(', ', $vars);
-				
-				$scripts[$i] = '(function('.$keys.'){'.$scripts[$i].'})('.$vars.');';
 			}
 			
 		}
@@ -117,7 +94,7 @@ class Javascript extends Tag {
 
 	private function jquery() {
 		if(true) {
-			$jquery = '/Javascript/jQuery/jquery.js';
+			$jquery = $this->location().'/scripts/jquery/jquery.js';
 		}
 		else {
 			// Google location
@@ -131,7 +108,7 @@ class Javascript extends Tag {
 		$this->assert('jquery');
 		
 		if(true) {
-			$jquery = '/Javascript/jQuery/jquery-ui.js';
+			$jquery = $this->location().'/scripts/jquery/jquery-ui.js';
 		}
 		else {
 			// Google location
@@ -145,7 +122,7 @@ class Javascript extends Tag {
 		$this->assert('jquery');
 		
 		if(true) {
-			$corners = '/Javascript/corner.js';
+			$corners = $this->location().'/scripts/corner.js';
 		}
 		else {
 			// Google location
@@ -158,7 +135,7 @@ class Javascript extends Tag {
 	private function json() {
 		
 		if(true) {
-			$json = '/Javascript/json.js';
+			$json = $this->location().'/scripts/json.js';
 		}
 		else {
 			// Google location
