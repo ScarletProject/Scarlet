@@ -303,7 +303,7 @@ class Scarlet
 	
 	public function getAssets($namespace = null, $args = array()) {
 		if(!isset($namespace)) {
-			return array_merge(S('<div>')->script(), S('<div>')->stylesheet());
+			return array();
 		}
 		
 		$tag = S($namespace)->arg($args);
@@ -339,6 +339,7 @@ class Scarlet
 	public function _init_tag($namespace, $args = array(), $library = null) {
 		if($namespace instanceof Tag) return $namespace;
 		if(isset($initialized)) return $this->initialized;
+		
 		
 		if(isset($library)) {
 			$this->library($library);
