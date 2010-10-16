@@ -1,4 +1,3 @@
 .DS_Store
-scarlet.js
-attachments/
-test-library*
+tests/*
+Console/Scarlet/
