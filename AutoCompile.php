@@ -19,9 +19,9 @@ if(file_exists($template)) {
 
 
 	$file = basename(__FILE__);
-	$pattern = '/(?:require|include)(?:_once)?(?:[\s]+)?+[(]?(?:[\s]+)?[\'"][\w.\/]+Autocompile2.php[\'"](?:[\s]+)?[)]?(?:[\s]+)?;/i';
+
+	$pattern = '/(?:require|include)(?:_once)?(?:[\s]+)?+[(]?(?:[\s]+)?[\'"][\w.\/]+Autocompile.php[\'"](?:[\s]+)?[)]?(?:[\s]+)?;/i';
 	$replacement = '';
-	
 	$content = preg_replace($pattern, $replacement, $content);
 	
 	$contentMD5 = md5($content);
