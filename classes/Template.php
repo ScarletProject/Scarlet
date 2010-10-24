@@ -83,11 +83,13 @@ class Template
 			
 			// Include the file
 			include_once($scarlet_file);
-		} else {		
+		} else {
+			// Remove the compiled file if it exists
+			if(file_exists($file)) {
+				unlink($file);
+			}
 			
-			$this->_clearCompiled();
 			$scarlet_content = $this->fetch();
-
 			eval('?>'.$scarlet_content);
 		}
 	}
@@ -120,6 +122,7 @@ class Template
 	}
 	
 	private function _clearCompiled() {
+		if(file_exists())
 		if(is_dir(S()->path('compiled')) && S()->path('compiled')) {
 			exec('rm -r '.S()->path('compiled'));
 		}
