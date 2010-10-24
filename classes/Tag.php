@@ -702,7 +702,7 @@ class Tag
 		return $id;
 	}
 	
-	private function uid($message, $strlen = 6) {
+	protected function uid($message, $strlen = 6) {
 				
 		$md5 = md5($message);
 		$id = substr($md5, 0, $strlen);

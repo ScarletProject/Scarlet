@@ -390,7 +390,8 @@ class Scarlet
 			if(!class_exists('Template')) {
 				require_once dirname(__FILE__).'/classes/Template.php';
 			}
-			$this->initialized = new Template($template);			
+			$this->initialized = new Template($template);
+			$this->path('template', realpath($template));
 		} else {
 			throw new Exception("Unable to initialize template: $template", 1);
 		}

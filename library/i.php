@@ -33,7 +33,10 @@ class i extends Tag
 				return '';
 				break;
 			default:
-				return S($this->arg('file'))->fetch();
+				$top = S()->path('template');
+				$contents = S($this->arg('file'))->fetch();
+				S()->path('template', $top);
+				return $contents;
 				break;
 		}		
 	}

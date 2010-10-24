@@ -66,10 +66,10 @@ class Javascript extends Tag {
 		// Merge all the scripts together
 		$scripts = implode("\n\n /* -------------- */ \n\n", $scripts);		
 				
-		// Add to .Scarlet directory
-		$this->attach('scarlet.js', $scripts, true);
+		$uid = $this->uid(S()->path('template'));
+		$this->attach('scarlet-'.$uid.'.js', $scripts, true);
 
-		$out = '<script src="'.$this->attach('scarlet.js').'" type="text/javascript" charset="utf-8"></script>';
+		$out = '<script src="'.$this->attach('scarlet-'.$uid.'.js').'" type="text/javascript" charset="utf-8"></script>';
 		
 		return $out;
 	}

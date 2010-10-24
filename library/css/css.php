@@ -79,11 +79,12 @@ class CSS extends Tag
 		// echo microtime(true);
 		// echo "<hr/>";
 		// 
-
 		
-		$this->attach('scarlet.css', $stylesheets, true);	
-
-		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet.css').'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
+		// Create a file based on the template name.
+		$uid = $this->uid(S()->path('template'));
+		
+		$this->attach('scarlet-'.$uid.'.css', $stylesheets, true);	
+		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet-'.$uid.'.css').'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
 		
 		return $out;
 	}
