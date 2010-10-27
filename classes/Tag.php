@@ -96,9 +96,13 @@ class Tag
 				continue;
 			}
 			
-			self::$stylesheets[$sheet] = $this->_map($sheet);
-			$this->attach($sheet);
-			
+			if(strstr($sheet, '.') === false) {
+				self::$stylesheets[$sheet] = $sheet;
+			} else {
+				// echo $sheet;echo "<br/>";
+				self::$stylesheets[$sheet] = $this->_map($sheet);
+				$this->attach($sheet);
+			}
 		}
 			// $this->
 			// echo $sheet;echo "<br/>";
@@ -759,12 +763,12 @@ class Tag
 		$sheet = implode('.', $sheet);
 		$sheet = $sheet.'_'.$suid.'.'.$end;
 		
-		$this->attach($sheet, $content, true);
+		$this->createAttachment($sheet, $content);
 		
 		if($suffix == 'js') {
-			$this->script($this->attach($sheet));
+			$this->script($this->attachment($sheet));
 		} else {
-			$sheet = $this->attach($sheet);
+			$sheet = $this->attachment($sheet);
 			$this->stylesheet($sheet);
 		}
 		

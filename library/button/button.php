@@ -16,8 +16,8 @@ class Button extends Tag
 		$this->defaults('value = Button', 'link = #');
 		$this->stylesheet('button.css');
 
-		$this->attach('buttons.png', 'images/colors.png');
-		$this->give('button.css', 'url', $this->attach('buttons.png'));
+		$this->attach('images/colors.png');
+		$this->give('button.css', 'url', $this->attachment('images/colors.png'));
 				
 		$this->wrap('a');
 		$this->attr('href', $this->arg('link'));

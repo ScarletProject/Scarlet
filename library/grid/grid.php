@@ -31,8 +31,8 @@ class Grid extends Tag
 		$customFile = ob_get_contents();
 		@ob_end_clean();
 
-		$this->attach('grid.css', $customFile, true);
-		$this->stylesheet($this->attach('grid.css'));
+		$this->createAttachment('grid.css', $customFile);
+		$this->stylesheet($this->attachment('grid.css'));
 		$this->wrap(true, false);
 		
 		$this->data('grid-numCols', $numCols);
