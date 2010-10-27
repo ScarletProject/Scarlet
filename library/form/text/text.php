@@ -16,7 +16,8 @@ class Form_Text extends Tag
 		$this->defaults('label');
 		$this->wrap('input', '/');
 		
-		$this->stylesheet('text.css')->script('jquery', 'text.js');
+		$this->stylesheet('text.css');
+		$this->script('jquery', 'text.js');
 				
 		if($this->arg('maxlength')) {
 			$this->attr('maxlength', $this->arg('maxlength'));
@@ -26,8 +27,8 @@ class Form_Text extends Tag
 		
 		// Sets the default to be rounded with 6px
 		if(!$this->arg('rounded')) {
-			$this->addClass('rounded');
-			$this->give('css:rounded/rounded.css', 'roundness', '7px');			
+			// $this->addClass('rounded');
+			// $this->give('css:rounded/rounded.css', 'roundness', '7px');			
 		}
 	}
 	

@@ -46,7 +46,6 @@ class CSS extends Tag
 		$stylesheets = array_merge($this->stylesheet(), $this->stylesheets);
 		$stylesheets = array_unique($stylesheets);
 		
-				
 		if(empty($stylesheets)) {
 			return '';
 		}
@@ -71,7 +70,9 @@ class CSS extends Tag
 		// $scripts = str_replace(array("\n","\t"),"",$scripts);
 
 		$uid = $this->id();
-
+		
+		
+		// print_r($stylesheets);exit(0);
 		// Not perfect, but it will have to do for now.
 		// echo "<hr/>";
 		// echo "Random Number: ".rand(1,2000);echo "<br/>";
@@ -81,10 +82,20 @@ class CSS extends Tag
 		// 
 		
 		// Create a file based on the template name.
-		$uid = $this->uid(S()->path('template'));
+		$template = S()->path('template');
+		$uid = $this->uid($template);
 		
-		$this->attach('scarlet-'.$uid.'.css', $stylesheets, true);	
-		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet-'.$uid.'.css').'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
+		$this->createAttachment('scarlet-'.$uid.'.css', $stylesheets);
+		// echo $this->attachment('scarlet-'.$uid.'.css');
+		// 
+		// $from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['REQUEST_URI'];
+		// $to = $this->attachment('scarlet-'.$uid.'.css');
+		// // echo "FROM: $from";echo "<br/>";
+		// // echo "TO: $to";echo "<hr/>";
+		// $path = Filesystem::absoluteToRelative($from, $to);
+		// // echo $path;
+		
+		$out = '<link rel="stylesheet" href="'.$this->attachment('scarlet-'.$uid.'.css').'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
 		
 		return $out;
 	}

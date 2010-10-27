@@ -43,14 +43,16 @@ class Javascript extends Tag {
 		$scripts = array_unique($scripts);
 
 		$this->scripts = $scripts;
+		// print_r($scripts);
 
 		if(empty($scripts)) {
 			return '';
 		}
 
+
 		foreach($scripts as $i => $script) {
 			$script = $this->map($script);
-			
+
 			if(file_exists($script)) {				
 				$scripts[$i] = file_get_contents($script);
 			} 
@@ -65,11 +67,12 @@ class Javascript extends Tag {
 	
 		// Merge all the scripts together
 		$scripts = implode("\n\n /* -------------- */ \n\n", $scripts);		
-				
-		$uid = $this->uid(S()->path('template'));
-		$this->attach('scarlet-'.$uid.'.js', $scripts, true);
 
-		$out = '<script src="'.$this->attach('scarlet-'.$uid.'.js').'" type="text/javascript" charset="utf-8"></script>';
+		$uid = $this->uid(S()->path('template'));
+		
+		$this->createAttachment('scarlet-'.$uid.'.js', $scripts);
+
+		$out = '<script src="'.$this->attachment('scarlet-'.$uid.'.js').'" type="text/javascript" charset="utf-8"></script>';
 		
 		return $out;
 	}

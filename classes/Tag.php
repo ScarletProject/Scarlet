@@ -9,6 +9,8 @@
 */
 if(!class_exists('Attribute')) {
 	require_once(dirname(__FILE__).'/Attributes.php');
+} if(!class_exists('Filesystem')) {
+	require_once(dirname(__FILE__).'/Filesystem.php');
 }
 
 class Tag
@@ -29,8 +31,8 @@ class Tag
 	
 	// Assets used for this specific tag
 	private
-		$used_stylesheets = array(),
-		$used_scripts = array()
+		$my_stylesheets = array(),
+		$my_scripts = array()
 	;
 	
 	private 
@@ -88,31 +90,41 @@ class Tag
 			return self::$stylesheets;
 		}
 
-
+		
 		foreach ($stylesheets as $sheet) {
 			if(!isset($sheet) || !$sheet) {
 				continue;
 			}
-			elseif(strstr($sheet, '.') === false) {
-				// Defer responsibility to css tag - ie. rounded
-				self::$stylesheets[$sheet] = $sheet;
-				$this->used_stylesheets[$sheet] = $sheet;
-			} elseif(stristr($sheet, '/') !== false) {
-				$mapped_sheet = $this->_map($sheet);
-				$sheet = basename($sheet);
-				self::$stylesheets[$sheet] = $mapped_sheet;
-				$this->used_stylesheets[$sheet] = $mapped_sheet;
-			} elseif(stristr($sheet, ':') !== false) {
-				$mapped_sheet = $this->_map($sheet);				
-				self::$stylesheets[$sheet] = $mapped_sheet;
-				$this->used_stylesheets[$sheet] = $mapped_sheet;
-			} 
-			else {
-				$mapped_sheet = $this->_map($sheet);
-				self::$stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
-				$this->used_stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
-			}
+			
+			self::$stylesheets[$sheet] = $this->_map($sheet);
+			$this->attach($sheet);
+			
 		}
+			// $this->
+			// echo $sheet;echo "<br/>";
+			// echo $this->_map($sheet);echo "<br/>";
+			// echo "<hr/>";
+			
+			// elseif(strstr($sheet, '.') === false) {
+			// 				// Defer responsibility to css tag - ie. rounded
+			// 				self::$stylesheets[$sheet] = $sheet;
+			// 				$this->my_stylesheets[$sheet] = $sheet;
+			// 			} elseif(stristr($sheet, '/') !== false) {
+			// 				$mapped_sheet = $this->_map($sheet);
+			// 				$sheet = basename($sheet);
+			// 				self::$stylesheets[$sheet] = $mapped_sheet;
+			// 				$this->my_stylesheets[$sheet] = $mapped_sheet;
+			// 			} elseif(stristr($sheet, ':') !== false) {
+			// 				$mapped_sheet = $this->_map($sheet);				
+			// 				self::$stylesheets[$sheet] = $mapped_sheet;
+			// 				$this->my_stylesheets[$sheet] = $mapped_sheet;
+			// 			} 
+			// 			else {
+			// 				$mapped_sheet = $this->_map($sheet);
+			// 				self::$stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
+			// 				$this->my_stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
+			// 			}
+		// }
 
 		return $this;
 	}
@@ -148,35 +160,56 @@ class Tag
 
 	public function script() {
 		$scripts = func_get_args();
-
+				
 		if(empty($scripts)) {
 			return self::$scripts;
 		}
 
+		
 		foreach ($scripts as $script) {
 			if(!isset($script) || !$script) {
 				continue;
 			}
-			elseif(strstr($script, '.') === false) {
-				// Defer responsibility to javascript tag - ie. jquery
+			
+			
+			if(strstr($script, '.') === false) {
 				self::$scripts[$script] = $script;
-				$this->used_scripts[$script] = $script;
-			} elseif(stristr($script, ':') !== false) {
-				$mapped_script = $this->_map($script);				
-				self::$scripts[$script] = $mapped_script;
-				$this->used_scripts[$script] = $mapped_script;
-			}
-			elseif(stristr($script, '/')) {
-				$mapped_script = $this->_map($script);
-				$script = basename($script);
-				self::$scripts[$script] = $mapped_script;
-				$this->used_scripts[$script] = $mapped_script;
 			} else {
-				$mapped_script = $this->_map($script);
-				self::$scripts[$this->namespace.':'.$script] = $mapped_script;
-				$this->used_scripts[$this->namespace.':'.$script] = $mapped_script;
+				self::$scripts[$script] = $this->_map($script);
+				$this->attach($script);
 			}
+			
 		}
+		// $scripts = func_get_args();
+		// 
+		// 		if(empty($scripts)) {
+		// 			return self::$scripts;
+		// 		}
+		// 
+		// 		foreach ($scripts as $script) {
+		// 			if(!isset($script) || !$script) {
+		// 				continue;
+		// 			}
+		// 			elseif(strstr($script, '.') === false) {
+		// 				// Defer responsibility to javascript tag - ie. jquery
+		// 				self::$scripts[$script] = $script;
+		// 				$this->my_scripts[$script] = $script;
+		// 			} elseif(stristr($script, ':') !== false) {
+		// 				$mapped_script = $this->_map($script);				
+		// 				self::$scripts[$script] = $mapped_script;
+		// 				$this->my_scripts[$script] = $mapped_script;
+		// 			}
+		// 			elseif(stristr($script, '/')) {
+		// 				$mapped_script = $this->_map($script);
+		// 				$script = basename($script);
+		// 				self::$scripts[$script] = $mapped_script;
+		// 				$this->my_scripts[$script] = $mapped_script;
+		// 			} else {
+		// 				$mapped_script = $this->_map($script);
+		// 				self::$scripts[$this->namespace.':'.$script] = $mapped_script;
+		// 				$this->my_scripts[$this->namespace.':'.$script] = $mapped_script;
+		// 			}
+		// 		}
 
 		return $this;
 	}
@@ -211,43 +244,134 @@ class Tag
 	}
 
 	// Alias to read only aspect of attach
-	public function attachment($mixed = null) {
-		return $this->attach($mixed);
-	}
+	// public function attachment($mixed = null) {
+	// 	return $this->attach($mixed);
+	// }
 
-	public function attach($mixed = null, $value = null, $write = false) {
+	public function attach($attachment) {
+		$attachments = func_get_args();
 		
-		if(!isset($mixed)) {
-			return self::$attachments;
-		} elseif(!isset($value)) {
-			if(isset(self::$attachments[$mixed])) {
-				return self::$attachments[$mixed];
-			} else {
-				return '';
-			}
-		} elseif(S()->path('attachments')) {
-			$path = S()->path('attachments');
-			$file = basename($mixed);
-			if($write) {
-				file_put_contents($path.'/'.$file, $value);
-			} else {
-				$value = $this->_map($value);
-				copy($value, $path.'/'.$file);
-			}
-			
-			// Remove root stuff
-			$root = explode('/', $_SERVER['DOCUMENT_ROOT']);
-			$path_arr = explode('/', $path);
-						
-			$path_arr = array_diff($path_arr, $root);
-			$path = implode('/', $path_arr);
-			$path = trim($path, ' /');
-			self::$attachments[$mixed] = '/'.$path.'/'.$file;
+		if(!S()->path('attachments')) {
+			return $this;
 		}
 		
+		if(count($attachments) == 1 && is_array($attachments[0])) {
+			$attachments = $attachments[0];
+		}
+		
+		// echo S()->path('template');
+		foreach ($attachments as $attachment) {
+			if(isset(self::$attachments[$attachment]))
+				continue;
+			
+			$source_file = $this->_map($attachment);
+			if(!file_exists($source_file)) {
+				throw new Exception("Could not get attachment: $attachment at $source_file", 1);
+			}
+			
+			$dir = $this->uid(S()->path('template'));
+			$attachment_dir = S()->path('attachments'); //.'/'.$dir;
+			// if(!is_dir($attachment_dir)) {
+			// 	mkdir($attachment_dir);
+			// }
+			
+			// uniquify attachment based on path and name - preserve extension.
+			$extension = explode('.',basename($attachment));
+			$extension = array_pop($extension);
+			$attachment_new_name = $this->uid($attachment);
+
+			// Resolve final destination file.
+			$dest_file = $attachment_dir.'/'.$attachment_new_name.'.'.$extension;
+
+			// echo S()->path('template');echo "<br/>";
+			// echo S()->path('attachments');echo "<hr/>";
+
+			// JS and CSS need to get overridden each time.
+			// if(!file_exists($dest_file)) {
+			copy($source_file, $dest_file);
+			// }
+			
+			// Add the attachment mapping to application's attachment array.
+			self::$attachments[$attachment] = $dest_file;
+		}
+		
+
 		return $this;
 	}
 
+	public function createAttachment($filename, $content) {
+		// Create and write to temporary
+		$tmp = S()->path('project').'/temp';
+
+	 	if(!is_dir($tmp)) {
+			Filesystem::mkdir($tmp);
+		}
+		
+		$fname = $this->uid($filename);
+		// Get extension
+		$fpieces = explode('.', $filename);
+		$suffix = end($fpieces);
+		
+		$file = $tmp.'/'.$fname.'.'.$suffix;
+		
+		// Add content to temporary file.
+		Filesystem::put_contents($file, $content);
+		
+		// Attach temporary file to attachment directory
+		$this->attach($file);
+		
+		// Delete temporary file
+		Filesystem::delete($tmp, true);
+		
+		// Override default in this case is easiest way.
+		self::$attachments[$filename] = self::$attachments[$file];
+		unset(self::$attachments[$file]);
+		
+	}
+
+	public function attachment($query) {
+		$attachment = self::$attachments[$query];
+		if(!isset($attachment)) return false;
+
+		$from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['REQUEST_URI'];
+		$to = $attachment;
+		
+		return Filesystem::absoluteToRelative($from, $to);
+	}
+ 	// 
+ 	// public function attach($mixed = null, $value = null, $write = false) {
+ 	// 	
+ 	// 	if(!isset($mixed)) {
+ 	// 		return self::$attachments;
+ 	// 	} elseif(!isset($value)) {
+ 	// 		if(isset(self::$attachments[$mixed])) {
+ 	// 			return self::$attachments[$mixed];
+ 	// 		} else {
+ 	// 			return '';
+ 	// 		}
+ 	// 	} elseif(S()->path('attachments')) {
+ 	// 		$path = S()->path('attachments');
+ 	// 		$file = basename($mixed);
+ 	// 		if($write) {
+ 	// 			file_put_contents($path.'/'.$file, $value);
+ 	// 		} else {
+ 	// 			$value = $this->_map($value);
+ 	// 			copy($value, $path.'/'.$file);
+ 	// 		}
+ 	// 		
+ 	// 		// Remove root stuff
+ 	// 		$root = explode('/', $_SERVER['DOCUMENT_ROOT']);
+ 	// 		$path_arr = explode('/', $path);
+ 	// 					
+ 	// 		$path_arr = array_diff($path_arr, $root);
+ 	// 		$path = implode('/', $path_arr);
+ 	// 		$path = trim($path, ' /');
+ 	// 		self::$attachments[$mixed] = '/'.$path.'/'.$file;
+ 	// 	}
+ 	// 	
+ 	// 	return $this;
+ 	// }
+ 
 	public function detach() {
 		$attachments = func_get_args();
 		
@@ -756,12 +880,12 @@ class Tag
 	////////          ARE SUBJECT TO CHANGE!        ////////
 	////////////////////////////////////////////////////////
 	
-	public function _used_scripts() {
-		return $this->used_scripts;
+	public function _my_scripts() {
+		return $this->my_scripts;
 	}
 	
-	public function _used_stylesheets() {
-		return $this->used_stylesheets;
+	public function _my_stylesheets() {
+		return $this->my_stylesheets;
 	}
 	
 	public function _leftWrap($wrap = null) {
@@ -1055,7 +1179,6 @@ class Tag
 		}
 		
 		if(!file_exists($path)) {
-			echo $path;echo "<br/>";
 			throw new Exception('Unable to map: '.$path.' to right location. ('.$assert.')', 1);
 		}
 		
