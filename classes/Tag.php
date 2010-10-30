@@ -83,6 +83,7 @@ class Tag
 	}
 	*/
 
+	// Convenience Method
 	public function stylesheet() {
 		$stylesheets = func_get_args();
 				
@@ -96,39 +97,8 @@ class Tag
 				continue;
 			}
 			
-			if(strstr($sheet, '.') === false) {
-				self::$stylesheets[$sheet] = $sheet;
-			} else {
-				// echo $sheet;echo "<br/>";
-				self::$stylesheets[$sheet] = $this->_map($sheet);
-				$this->attach($sheet);
-			}
+			$this->attach($sheet, $sheet);
 		}
-			// $this->
-			// echo $sheet;echo "<br/>";
-			// echo $this->_map($sheet);echo "<br/>";
-			// echo "<hr/>";
-			
-			// elseif(strstr($sheet, '.') === false) {
-			// 				// Defer responsibility to css tag - ie. rounded
-			// 				self::$stylesheets[$sheet] = $sheet;
-			// 				$this->my_stylesheets[$sheet] = $sheet;
-			// 			} elseif(stristr($sheet, '/') !== false) {
-			// 				$mapped_sheet = $this->_map($sheet);
-			// 				$sheet = basename($sheet);
-			// 				self::$stylesheets[$sheet] = $mapped_sheet;
-			// 				$this->my_stylesheets[$sheet] = $mapped_sheet;
-			// 			} elseif(stristr($sheet, ':') !== false) {
-			// 				$mapped_sheet = $this->_map($sheet);				
-			// 				self::$stylesheets[$sheet] = $mapped_sheet;
-			// 				$this->my_stylesheets[$sheet] = $mapped_sheet;
-			// 			} 
-			// 			else {
-			// 				$mapped_sheet = $this->_map($sheet);
-			// 				self::$stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
-			// 				$this->my_stylesheets[$this->namespace.':'.$sheet] = $mapped_sheet;
-			// 			}
-		// }
 
 		return $this;
 	}
@@ -175,45 +145,8 @@ class Tag
 				continue;
 			}
 			
-			
-			if(strstr($script, '.') === false) {
-				self::$scripts[$script] = $script;
-			} else {
-				self::$scripts[$script] = $this->_map($script);
-				$this->attach($script);
-			}
-			
+			$this->attach($script, $script);
 		}
-		// $scripts = func_get_args();
-		// 
-		// 		if(empty($scripts)) {
-		// 			return self::$scripts;
-		// 		}
-		// 
-		// 		foreach ($scripts as $script) {
-		// 			if(!isset($script) || !$script) {
-		// 				continue;
-		// 			}
-		// 			elseif(strstr($script, '.') === false) {
-		// 				// Defer responsibility to javascript tag - ie. jquery
-		// 				self::$scripts[$script] = $script;
-		// 				$this->my_scripts[$script] = $script;
-		// 			} elseif(stristr($script, ':') !== false) {
-		// 				$mapped_script = $this->_map($script);				
-		// 				self::$scripts[$script] = $mapped_script;
-		// 				$this->my_scripts[$script] = $mapped_script;
-		// 			}
-		// 			elseif(stristr($script, '/')) {
-		// 				$mapped_script = $this->_map($script);
-		// 				$script = basename($script);
-		// 				self::$scripts[$script] = $mapped_script;
-		// 				$this->my_scripts[$script] = $mapped_script;
-		// 			} else {
-		// 				$mapped_script = $this->_map($script);
-		// 				self::$scripts[$this->namespace.':'.$script] = $mapped_script;
-		// 				$this->my_scripts[$this->namespace.':'.$script] = $mapped_script;
-		// 			}
-		// 		}
 
 		return $this;
 	}
@@ -276,7 +209,8 @@ class Tag
 		}
 
 		$source = $this->_map($attachment);
-		
+		echo $source;echo "<br/>";
+		echo "<hr/>";
 		// Find the extension
 		$extension = basename($source);
 		$extension = explode('.', $extension);
@@ -291,8 +225,9 @@ class Tag
 			Filesystem::mkdir($dir);
 		}
 		
-		// Copy the file
-		Filesystem::copy($source, $dir.'/'.$filename);
+		// Copy the file - should I always overwrite
+		// -- Yes, anytime a file is changed, it needs to be updated.
+		Filesystem::copy($source, $dir.'/'.$filename, true);
 
 		self::$attachments[$name] = $dir.'/'.$filename;
 		
@@ -326,11 +261,11 @@ class Tag
 	private function _findAttachment($attachment)
 	{
 		if(isset(self::$attachments[$attachment])) {
-			$from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['REQUEST_URI'];
+			$from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['SCRIPT_NAME'];
 			$to = self::$attachments[$attachment];
 
 			$path = Filesystem::absoluteToRelative($from, $to);
-			echo $path;
+			// echo $path;
 			
 			return $path;
 		} else {
@@ -852,12 +787,12 @@ class Tag
 		$sheet = implode('.', $sheet);
 		$sheet = $sheet.'_'.$suid.'.'.$end;
 		
-		$this->createAttachment($sheet, $content);
+		$this->attach($sheet, $content, true);
 		
 		if($suffix == 'js') {
-			$this->script($this->attachment($sheet));
+			$this->script($this->attach($sheet));
 		} else {
-			$sheet = $this->attachment($sheet);
+			$sheet = $this->attach($sheet);
 			$this->stylesheet($sheet);
 		}
 		

@@ -16,9 +16,9 @@ class Form_Text extends Tag
 		$this->defaults('label');
 		$this->wrap('input', '/');
 
-		$this->attach('text-stylesheet','text.css');
-		$this->attach('blah', 'jquery');
-		// $this->script('jquery', 'text.js');
+		$this->stylesheet('text.css');
+
+		$this->script('jquery', 'text.js');
 				
 		if($this->arg('maxlength')) {
 			$this->attr('maxlength', $this->arg('maxlength'));

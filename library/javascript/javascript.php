@@ -38,41 +38,49 @@ class Javascript extends Tag {
 
 	public function show() {
 		$scripts = array();
+		
+		foreach ($this->attach() as $name => $attachment) {
+			$file = basename($attachment);
+			$extension = end(explode('.', $attachment));
+			if($extension == 'js') {
+				$scripts[$name] = $attachment;
+			}
+		}
 
-		$scripts = array_merge($this->script(), $this->scripts);
+		$scripts = array_merge($scripts, $this->scripts);
 		$scripts = array_unique($scripts);
-
-		$this->scripts = $scripts;
-		// print_r($scripts);
 
 		if(empty($scripts)) {
 			return '';
 		}
 
-
+		// Get scripts
 		foreach($scripts as $i => $script) {
 			$script = $this->map($script);
-
-			if(file_exists($script)) {				
+			if(file_exists($script)) {
 				$scripts[$i] = file_get_contents($script);
 			} 
-			elseif(file_exists($_SERVER['DOCUMENT_ROOT'].$script)) {
-				$scripts[$i] = file_get_contents($_SERVER['DOCUMENT_ROOT'].$script);
-			}
-			else {
-				throw new Exception('Unable to retrieve script: '.$script, 1);
-			}
-			
 		}
-	
-		// Merge all the scripts together
-		$scripts = implode("\n\n /* -------------- */ \n\n", $scripts);		
+		// print_r($scripts);
+		$combined = implode("\n\n /* -------------- */\n\n", $scripts);
+		// $scripts = str_replace(array("\n","\t"),"",$scripts);
 
-		$uid = $this->uid(S()->path('template'));
-		
-		$this->createAttachment('scarlet-'.$uid.'.js', $scripts);
 
-		$out = '<script src="'.$this->attachment('scarlet-'.$uid.'.js').'" type="text/javascript" charset="utf-8"></script>';
+		// print_r($scripts);exit(0);
+		// Not perfect, but it will have to do for now.
+		// echo "<hr/>";
+		// echo "Random Number: ".rand(1,2000);echo "<br/>";
+		// echo 'scarlet_'.$uid.'.js';echo "<br/>";
+		// echo microtime(true);
+		// echo "<hr/>";
+		// 
+
+		// Create a file based on the template name.
+		$template = S()->path('template');
+		$uid = $this->uid($template);
+
+		$this->attach('scarlet-'.$uid.'.js', $combined, true);
+		$out = '<script src="'.$this->attach('scarlet-'.$uid.'.js').'" type="text/javascript" charset="utf-8"></script>';
 		
 		return $out;
 	}
