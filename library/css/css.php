@@ -43,9 +43,18 @@ class CSS extends Tag
 	}
 
 	public function show() {
-		$stylesheets = array_merge($this->stylesheet(), $this->stylesheets);
-		$stylesheets = array_unique($stylesheets);
+		$stylesheets = array();
+		foreach ($this->attach() as $name => $attachment) {
+			$file = basename($attachment);
+			$extension = end(explode('.', $attachment));
+			if($extension == 'css') {
+				$stylesheets[$name] = $attachment;
+			}
+		}
 		
+		$stylesheets = array_merge($stylesheets, $this->stylesheets);
+		$stylesheets = array_unique($stylesheets);
+
 		if(empty($stylesheets)) {
 			return '';
 		}
@@ -56,20 +65,10 @@ class CSS extends Tag
 			if(file_exists($stylesheet)) {
 				$stylesheets[$i] = file_get_contents($stylesheet);
 			} 
-			// Definitely redundant - fix later.
-			elseif(file_exists($_SERVER['DOCUMENT_ROOT'].$stylesheet)) {
-				
-				$stylesheets[$i] = file_get_contents($_SERVER['DOCUMENT_ROOT'].$stylesheet);
-			}
-			else {
-				// $T->error('Unable to retrieve script: '.$stylesheet,__CLASS__,__FUNCTION__,__LINE__);
-			}
 		}
-		
-		$stylesheets = implode("\n\n /* -------------- */\n\n", $stylesheets);
+		// print_r($stylesheets);
+		$combined = implode("\n\n /* -------------- */\n\n", $stylesheets);
 		// $scripts = str_replace(array("\n","\t"),"",$scripts);
-
-		$uid = $this->id();
 		
 		
 		// print_r($stylesheets);exit(0);
@@ -85,7 +84,7 @@ class CSS extends Tag
 		$template = S()->path('template');
 		$uid = $this->uid($template);
 		
-		$this->createAttachment('scarlet-'.$uid.'.css', $stylesheets);
+		$this->attach('scarlet-'.$uid.'.css', $combined, true);
 		// echo $this->attachment('scarlet-'.$uid.'.css');
 		// 
 		// $from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['REQUEST_URI'];
@@ -95,7 +94,7 @@ class CSS extends Tag
 		// $path = Filesystem::absoluteToRelative($from, $to);
 		// // echo $path;
 		
-		$out = '<link rel="stylesheet" href="'.$this->attachment('scarlet-'.$uid.'.css').'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
+		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet-'.$uid.'.css').'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
 		
 		return $out;
 	}

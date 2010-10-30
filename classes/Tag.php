@@ -252,6 +252,94 @@ class Tag
 	// 	return $this->attach($mixed);
 	// }
 
+	public function attach($name = null, $attachment = null, $write = false) {
+		if(!isset($name)) {
+			return self::$attachments;
+		} elseif(!isset($attachment)) {
+			return $this->_findAttachment($name);
+		}
+		
+		if(!S()->path('attachments')) {
+			return $this;
+		}
+		
+		// Redirect to _createAttachment
+		if($write) {
+			$this->_createAttachment($name, $attachment);
+			return $this;
+		}
+		
+		// Slight hack for now... for extensionless files, try mappings. Doesn't scale well.
+		if(strpos($attachment, '.') === false) {
+			$attachment = S('javascript')->map($attachment);
+			$attachment = S('css')->map($attachment);			
+		}
+
+		$source = $this->_map($attachment);
+		
+		// Find the extension
+		$extension = basename($source);
+		$extension = explode('.', $extension);
+		$extension = end($extension);
+		
+		// Use the namespace as the directory, attachment as the filename
+		$dir = $this->uid($this->namespace);
+		$filename = $this->uid($attachment).'.'.$extension;
+		$dir = S()->path('attachments').'/'.$dir;
+
+		if(!is_dir($dir)) {
+			Filesystem::mkdir($dir);
+		}
+		
+		// Copy the file
+		Filesystem::copy($source, $dir.'/'.$filename);
+
+		self::$attachments[$name] = $dir.'/'.$filename;
+		
+		return $this;
+	}
+	
+	private function _createAttachment($name, $attachment) {
+		// Use the template as the directory, name as filename
+		$dir = $this->uid($this->template);
+		
+		// Find the extension
+		$extension = basename($name);
+		$extension = explode('.', $extension);
+		$extension = end($extension);
+		
+		$filename = $this->uid($name).'.'.$extension;
+		$dir = S()->path('attachments').'/'.$dir;
+		
+		if(!is_dir($dir)) {
+			Filesystem::mkdir($dir);
+		}
+		
+		// writing the file.
+		Filesystem::put_contents($dir.'/'.$filename, $attachment);
+		
+		self::$attachments[$name] = $dir.'/'.$filename;
+		
+		return $this;
+	}
+
+	private function _findAttachment($attachment)
+	{
+		if(isset(self::$attachments[$attachment])) {
+			$from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['REQUEST_URI'];
+			$to = self::$attachments[$attachment];
+
+			$path = Filesystem::absoluteToRelative($from, $to);
+			echo $path;
+			
+			return $path;
+		} else {
+			// Will allow it to evaluate false and not show up in strings.
+			return '';
+		}
+	}
+
+/*
 	public function attach($attachment) {
 		$attachments = func_get_args();
 		
@@ -301,7 +389,8 @@ class Tag
 		
 
 		return $this;
-	}
+	}*/
+
 
 	public function createAttachment($filename, $content) {
 		// Create and write to temporary

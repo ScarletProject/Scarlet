@@ -211,6 +211,7 @@ class Template
 		
 		$content = $this->hideBlocks($content, $ignore);
 
+		// Pull the tags out of the document
 		$tags = $this->pull($content);
 
 		// Allows for JS, css shortcut to be made
