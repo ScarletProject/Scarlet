@@ -84,6 +84,10 @@ class CSS extends Tag
 		$template = S()->path('template');
 		$uid = $this->uid($template);
 		
+		// Rework all the paths in CSS
+		$urls = $this->_get_urls($combined);
+		print_r($urls);
+		
 		$this->attach('scarlet-'.$uid.'.css', $combined, true);
 		// echo $this->attachment('scarlet-'.$uid.'.css');
 		// 
@@ -93,8 +97,11 @@ class CSS extends Tag
 		// // echo "TO: $to";echo "<hr/>";
 		// $path = Filesystem::absoluteToRelative($from, $to);
 		// // echo $path;
+		$from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['SCRIPT_NAME'];
+		$to = $this->attach('scarlet-'.$uid.'.css');
+		$path = Filesystem::absoluteToRelative($from, $to);
 		
-		$out = '<link rel="stylesheet" href="'.$this->attach('scarlet-'.$uid.'.css').'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
+		$out = '<link rel="stylesheet" href="'.$path.'" type="text/css" media="screen" title="Scarlet" charset="utf-8" />';
 		
 		return $out;
 	}
@@ -106,6 +113,45 @@ class CSS extends Tag
 		} else {
 			return $stylesheet;
 		}
+	}
+	
+	private function _get_urls($file) {
+		// http://nadeausoftware.com/articles/2008/01/php_tip_how_extract_urls_css_file
+		$urls = array( );
+
+		$url_pattern     = '(([^\\\\\'", \(\)]*(\\\\.)?)+)';
+		$urlfunc_pattern = 'url\(\s*[\'"]?' . $url_pattern . '[\'"]?\s*\)';
+		$pattern         = '/(' .
+			 '(@import\s*[\'"]' . $url_pattern     . '[\'"])' .
+			'|(@import\s*'      . $urlfunc_pattern . ')'      .
+			'|('                . $urlfunc_pattern . ')'      .  ')/iu';
+		if ( !preg_match_all( $pattern, $file, $matches ) )
+			return $urls;
+
+		// @import '...'
+		// @import "..."
+		foreach ( $matches[3] as $match )
+			if ( !empty($match) )
+				$urls[] = 
+					preg_replace( '/\\\\(.)/u', '\\1', $match );
+
+		// @import url(...)
+		// @import url('...')
+		// @import url("...")
+		foreach ( $matches[7] as $match )
+			if ( !empty($match) )
+				$urls[] = 
+					preg_replace( '/\\\\(.)/u', '\\1', $match );
+
+		// url(...)
+		// url('...')
+		// url("...")
+		foreach ( $matches[11] as $match )
+			if ( !empty($match) )
+				$urls[] = 
+					preg_replace( '/\\\\(.)/u', '\\1', $match );
+
+		return $urls;
 	}
 
 	private function assert($stylesheet) {

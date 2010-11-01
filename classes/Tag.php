@@ -202,15 +202,14 @@ class Tag
 			return $this;
 		}
 		
-		// Slight hack for now... for extensionless files, try mappings. Doesn't scale well.
+		// Slight hack for now... for extensionless files, try mappings. Doesn't scale *too* well.
 		if(strpos($attachment, '.') === false) {
 			$attachment = S('javascript')->map($attachment);
 			$attachment = S('css')->map($attachment);			
 		}
 
 		$source = $this->_map($attachment);
-		echo $source;echo "<br/>";
-		echo "<hr/>";
+
 		// Find the extension
 		$extension = basename($source);
 		$extension = explode('.', $extension);
@@ -235,8 +234,9 @@ class Tag
 	}
 	
 	private function _createAttachment($name, $attachment) {
-		// Use the template as the directory, name as filename
-		$dir = $this->uid($this->template);
+		// Use the content as the directory, name as filename - slightly slower than using $this->template,
+		// But works for the give function now.
+		$dir = $this->uid($attachment);
 		
 		// Find the extension
 		$extension = basename($name);
@@ -260,11 +260,12 @@ class Tag
 
 	private function _findAttachment($attachment)
 	{
-		if(isset(self::$attachments[$attachment])) {
-			$from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['SCRIPT_NAME'];
-			$to = self::$attachments[$attachment];
-
-			$path = Filesystem::absoluteToRelative($from, $to);
+		$path = self::$attachments[$attachment];
+		if(isset($path)) {
+			// $from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['SCRIPT_NAME'];
+			// $to = self::$attachments[$attachment];
+			// 
+			// $path = Filesystem::absoluteToRelative($from, $to);
 			// echo $path;
 			
 			return $path;
@@ -728,7 +729,7 @@ class Tag
 		// 	$mixed['class'] = str_replace(' ', '.', trim($this->attr('class')));
 		// }
 		// 
-		
+
 		$pattern = '/\$\w+/';
 		preg_match_all($pattern, $content, $matches);
 		
@@ -739,11 +740,13 @@ class Tag
 		
 		$vars = array_keys($vars);
 		$has_at_element = false;
-		foreach($vars as $variable) {			
+		foreach($vars as $variable) {
+			
 			// Replace variables	
 			$var = str_replace('$', '', $variable);
 			if(isset($mixed[$var])) {
 				$value = $mixed[$var];
+				// If the variable is a file, we need to make it relative to final script...
 			} elseif($var == 'element') {
 				// Replace me later when I know a little more
 				$has_at_element = true;
@@ -768,6 +771,7 @@ class Tag
 		// Suffix already used - use $end instead.
 		$end = array_pop($sheet);
 		
+		// If its the same keys, values, and file lets not duplicate.
 		$message = array();
 		foreach($mixed as $key => $value) {
 			$message[] = $key.':'.$value;
@@ -1182,6 +1186,24 @@ class Tag
 		}
 		
 		return $out;
+	}
+	
+	private function _is_url($url)
+	{
+		// From http://www.php.net/manual/en/function.preg-match.php
+		$regex = "((https?|ftp)\:\/\/)?"; // SCHEME 
+	    $regex .= "([a-z0-9+!*(),;?&=\$_.-]+(\:[a-z0-9+!*(),;?&=\$_.-]+)?@)?"; // User and Pass 
+	    $regex .= "([a-z0-9-.]*)\.([a-z]{2,3})"; // Host or IP 
+	    $regex .= "(\:[0-9]{2,5})?"; // Port 
+	    $regex .= "(\/([a-z0-9+\$_-]\.?)+)*\/?"; // Path 
+	    $regex .= "(\?[a-z+&\$_.-][a-z0-9;:@&%=+\/\$_.-]*)?"; // GET Query 
+	    $regex .= "(#[a-z_.-][a-z0-9+\$_.-]*)?"; // Anchor
+	
+		if(preg_match('/^'.$regex.'$/', $url)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public function _map($assert) {

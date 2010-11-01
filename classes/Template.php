@@ -293,6 +293,7 @@ class Template
 	}
 	
 	private function tokenize($tag) {
+		// Modified version of JSON's parser
 		$number = '(?:-?\\b(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\\b)';
 		$oneChar = '([^\0-\x08\x0a-\x1f\\\'"]|\\(?:[\"/\\bfnrt]|u[0-9A-Fa-f]{4})';
 		$string = '(?:[\'"]'.$oneChar.'*[\'"])';

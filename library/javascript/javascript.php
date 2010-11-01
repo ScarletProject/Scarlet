@@ -80,7 +80,12 @@ class Javascript extends Tag {
 		$uid = $this->uid($template);
 
 		$this->attach('scarlet-'.$uid.'.js', $combined, true);
-		$out = '<script src="'.$this->attach('scarlet-'.$uid.'.js').'" type="text/javascript" charset="utf-8"></script>';
+		
+		$from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['SCRIPT_NAME'];
+		$to = $this->attach('scarlet-'.$uid.'.js');
+		$path = Filesystem::absoluteToRelative($from, $to);
+		
+		$out = '<script src="'.$path.'" type="text/javascript" charset="utf-8"></script>';
 		
 		return $out;
 	}
