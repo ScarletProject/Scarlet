@@ -86,9 +86,49 @@ class CSS extends Tag
 		
 		// Rework all the paths in CSS
 		$urls = $this->_get_urls($combined);
-		print_r($urls);
+			
+
+		
+		// Create a blank file and get a link to it.
+		$this->attach('scarlet-'.$uid.'.css', '', true);
+		
+		
+		// Implement just a little bit of magic here:
+			// Basically allow CSS to also use urls relative to template -
+			// like every other implementation......
+		$template_path = dirname(S()->path('template'));
+		
+		$paths = array();
+		foreach ($urls as $url) {
+			// echo $template_path.'/'.$url;echo "<br/>";
+ 			if(file_exists($url)) {
+				$paths[] = realpath($url);
+			} elseif(file_exists($template_path.'/'.$url)) {
+				// Not sure if you are necessary.. gonna keep for edge cases perhaps. Like includes.
+				$paths[] = realpath($template_path.'/'.$url);
+			} else {
+				$paths[] = $url;
+				// Catches case where it actually shows up on its own... relative to user's stylesheet.
+				// TODO: come up with a way to differentiate between correct and fail, so we can throw warnings
+			}
+		}
+		
+		
+		foreach ($paths as $i => $path) {
+			// Accounting for the paths that already work but aren't 'correct' relative to c.w.d.
+			if(file_exists($path)) {
+				$paths[$i] = Filesystem::absoluteToRelative($this->attach('scarlet-'.$uid.'.css'), $path);				
+			}
+		}
+		
+		// Replace old paths with new paths
+		foreach ($urls as $i => $url) {
+			$combined = str_replace($url, $paths[$i], $combined);
+		}
+
 		
 		$this->attach('scarlet-'.$uid.'.css', $combined, true);
+		
 		// echo $this->attachment('scarlet-'.$uid.'.css');
 		// 
 		// $from = $_SERVER['DOCUMENT_ROOT'].$_SERVER['REQUEST_URI'];

@@ -32,7 +32,6 @@ class Grid extends Tag
 		@ob_end_clean();
 
 		$this->attach('grid.css', $customFile, true);
-		$this->stylesheet($this->attach('grid.css'));
 		$this->wrap(true, false);
 		
 		$this->data('grid-numCols', $numCols);

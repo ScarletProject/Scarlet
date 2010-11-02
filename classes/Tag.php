@@ -90,7 +90,7 @@ class Tag
 		if(empty($stylesheets)) {
 			return self::$stylesheets;
 		}
-
+	
 		
 		foreach ($stylesheets as $sheet) {
 			if(!isset($sheet) || !$sheet) {
@@ -99,7 +99,7 @@ class Tag
 			
 			$this->attach($sheet, $sheet);
 		}
-
+	
 		return $this;
 	}
 
@@ -786,20 +786,10 @@ class Tag
 			$content = str_ireplace('$element', $suid, $content);
 			$this->addClass($suid);
 		}
-
 		
 		$sheet = implode('.', $sheet);
 		$sheet = $sheet.'_'.$suid.'.'.$end;
-		
 		$this->attach($sheet, $content, true);
-		
-		if($suffix == 'js') {
-			$this->script($this->attach($sheet));
-		} else {
-			$sheet = $this->attach($sheet);
-			$this->stylesheet($sheet);
-		}
-		
 		
 		return $this;
 	}
