@@ -146,8 +146,8 @@ class Template
 			$content = $this->fetch();
 		}
 		
-		// $header = '<!-- Compiled by Scarlet at '.date("g:ia").' on '.date('M j Y').' -->'."\n\n";
-		// $content = $header.$content;
+		$header = '<!-- Compiled by Scarlet at '.date("g:ia").' on '.date('M j Y').' -->'."\n\n";
+		$content = $header.$content;
 
 		$filepath = $this->findCompiledFile();
 
